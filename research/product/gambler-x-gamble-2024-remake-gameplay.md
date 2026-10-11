@@ -125,6 +125,8 @@ The remake is explicitly a rework of the same game, and the one English reviewer
 - [Complots 2 — Gameplay, Clans, and the Nine Characters](./complots-2-gameplay.md) — small bluffing card game with a character roster.
 - [Board Games Like Coup: Rebellion G54 — Ranked Recommendations](./board-games-like-coup-rebellion-g54.md) — broader shortlist of small bluffing/social-deduction titles.
 
+- [Gambler × Gamble! — Which Edition Is Better? (User Reviews, 2016 vs 2024)](./gambler-x-gamble-edition-comparison-reviews.md) — user-review comparison of the two editions and which to pick.
+
 ## Changelog
 
 - 2026-10-11 — created (split out of the earlier combined `gambler-x-gamble-gameplay.md`). Covers the **2024 remake only**: publisher specs and component counts (62 cards, 32 chips, 12+), the three official change categories (more hiring windows; special gamblers buyable only at 0 money; flashier rebalancing), the inherited 2016 core loop, and the reported 20-chip win target. No public remake rulebook exists, so rule details beyond the publisher blurb and one English review are flagged. Confidence: low.

@@ -157,6 +157,8 @@ The game ends the moment any of these is true:
 - [Complots 2 — Gameplay, Clans, and the Nine Characters](./complots-2-gameplay.md) — small bluffing card game with a character roster.
 - [Board Games Like Coup: Rebellion G54 — Ranked Recommendations](./board-games-like-coup-rebellion-g54.md) — broader shortlist of small bluffing/social-deduction titles.
 
+- [Gambler × Gamble! — Which Edition Is Better? (User Reviews, 2016 vs 2024)](./gambler-x-gamble-edition-comparison-reviews.md) — user-review comparison of the two editions and which to pick.
+
 ## Changelog
 
 - 2026-10-11 — created (split out of the earlier combined `gambler-x-gamble-gameplay.md`). Covers the **2016 original only**: specs and components, setup (seat-based chips, No.1–3 draft), the six-step round loop, the ±1 start-player nudge, hiring costs and GET-2/GET-3 Destiny cards, Lucky Mode, both win conditions (15 chips / No.4 jackpot) and tie-breaks, the Gambler Fumble, strategy and reception. Per-card reward values and the ±1 chip destination remain unverified. Confidence: medium.

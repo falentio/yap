@@ -11,6 +11,7 @@ sources:
   - https://norollsbarred.com/articles/now-you-see-me-a-guide-to-hidden-movement-games/
   - https://theplayersaid.com/2024/03/22/best-3-games-with-hidden-movement/
   - https://id.wikipedia.org/wiki/Mati_listrik_Jawa_2019
+  - https://en.wikipedia.org/wiki/2019_Java_blackout
   - https://www.kompas.id/artikel/en-tragedi-blackout-listrik-sumatera-dari-kekacauan-ekonomi-hingga-hilangnya-nyawa
   - http://www.journal.stkipsubang.ac.id/index.php/didaktik/article/download/11102/6490
 confidence: medium
@@ -60,9 +61,13 @@ lot of unresolved history. The genset is in the back room. Someone is going to t
 start it. Someone else is going to be very unhappy if they do.
 
 Rolling blackouts are a lived reality in Indonesia, not a dramatic device — the 2019
-Javan blackout affected tens of millions of people across Jabodetabek and parts of West
-Java [3](https://id.wikipedia.org/wiki/Mati_listrik_Jawa_2019), and the 2026 Sumatran outage shut down factories and small businesses for two
-days [4](https://www.kompas.id/artikel/en-tragedi-blackout-listrik-sumatera-dari-kekacauan-ekonomi-hingga-hilangnya-nyawa). The game's premise is not a fantasy; it is a Tuesday.
+Javan blackout left around **21.3 million people** without power across Jakarta, Banten,
+West Java and parts of Central Java
+[3](https://id.wikipedia.org/wiki/Mati_listrik_Jawa_2019)
+([English version](https://en.wikipedia.org/wiki/2019_Java_blackout)). The 2026 Sumatran
+outage ran for two days, halting factories and small businesses and triggering rolling
+cuts again during recovery [4](https://www.kompas.id/artikel/en-tragedi-blackout-listrik-sumatera-dari-kekacauan-ekonomi-hingga-hilangnya-nyawa).
+The game's premise is not a fantasy; it is a Tuesday.
 
 ### 2. Design pillars
 
@@ -411,7 +416,7 @@ the game supports up to 6 players without an asymmetric role split [2](https://n
 
 1. *Escape from the Aliens in Outer Space* — scenario/rules page (noise and silence cards) — https://www.eftaios.com/ruleditor.html
 2. No Rolls Barred — *Now You See Me: A Guide to Hidden Movement Games* — https://norollsbarred.com/articles/now-you-see-me-a-guide-to-hidden-movement-games/
-3. Wikipedia (id) — *Mati listrik Jawa 2019* (the 2019 Javan blackout) — https://id.wikipedia.org/wiki/Mati_listrik_Jawa_2019
+3. Wikipedia — *Mati listrik Jawa 2019* / *2019 Java blackout* (21.3 million affected; PLN's Rp 90 bn damage estimate) — https://id.wikipedia.org/wiki/Mati_listrik_Jawa_2019 , https://en.wikipedia.org/wiki/2019_Java_blackout
 4. Kompas.id — *The Sumatra Electricity Blackout Tragedy* (2026 outage) — https://www.kompas.id/artikel/en-tragedi-blackout-listrik-sumatera-dari-kekacauan-ekonomi-hingga-hilangnya-nyawa
 5. Meeples Corner — *What Are Hidden Movement Board Games?* — https://meeplescorner.net/blogs/meeple-musings/what-are-hidden-movement-board-games-everything-you-need-to-know
 6. The Players' Aid — *Best 3 Games with… Hidden Movement* — https://theplayersaid.com/2024/03/22/best-3-games-with-hidden-movement/
@@ -439,3 +444,10 @@ the game supports up to 6 players without an asymmetric role split [2](https://n
   change raised KOs/game 0.66 → 1.07 and knockout endings 1.5% → 10.5%. Corrected an
   earlier draft's incorrect claim that satpam catches were 0 on the maze (they were ~10/game;
   see §12) after re-measuring all four map × light-radius cells with `measure.js`.
+- 2026-10-11 — self-audit of claim confidence. Fixed a player-count contradiction in the
+  pitch ("eleven people" in a 2–6 player game); downgraded front-matter `confidence` from
+  high to medium (this is a design, not a verified finding); cited sources [5]–[7] inline
+  after they were listed but unused; and **corrected the 2019 blackout figure**, which had
+  been quoted from a search snippet without opening the page — the source says ~21.3
+  million people across a wider region, not "tens of millions" across Jabodetabek and
+  parts of West Java.
