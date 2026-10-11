@@ -62,6 +62,7 @@ news, docs, pricing pages, product pages, articles, papers, and current facts.
 |------|------|
 | Discover sources, answer "what/which/who", find URLs | `mcp__tinyfish__search` |
 | Read, summarize, or extract content from URL(s) | `mcp__tinyfish__fetch_content` |
+| Read a project's internals (open-source source code) | scout subagent → cloner (below) |
 
 ### Rules
 
@@ -91,6 +92,42 @@ news, docs, pricing pages, product pages, articles, papers, and current facts.
 
 If a search or fetch was performed but its URLs and findings are not captured
 in the Markdown file, the research is incomplete.
+
+### Reading source code — a scout spawns the cloner
+
+Reading a project's **internals** means reading its source, which TinyFish does
+not serve. Never crawl a codebase in this context: a crawl is file reads and
+grep output, and it crowds the window the Markdown file needs. Delegate a
+**scout**, and let the scout spawn a **cloner**:
+
+```text
+A: this agent [1]
+└── spawn S: scout  ← delegate_task; A never crawls [1a]
+    ├── S spawns C: cloner  ← "use the library-source skill, do npm zod@4.0.7" [1a1]
+    │   └── C: check ~/.pi/source → clone shallow if absent → return path, repo, ref, sha [1a1a]
+    └── S crawls  ← reads what C returned [1a2]
+```
+
+- **The scout reports; it does not dump.** Ask it for the answer, findings
+  anchored to `path:line` with a status, gaps with a probe, and the cloner's
+  `source` block. No file contents, grep output, or directory listings.
+- **The cloner owns the checkout.** It resolves the repo and ref, reuses the
+  `~/.pi/source/<slug>` checkout when present, and clones shallow when absent.
+  Do not clone by hand, and never clone into `yap/`.
+- **Read the clone, not the dependency's build artifact.** `node_modules`,
+  `target`, `vendor`, `.venv`, and the cargo registry hold transformed,
+  deduped, or minified copies — the wrong surface. Source lands at
+  `~/.pi/source`, at the path the cloner returns.
+- **Pin the revision.** The cloner returns repo, ref, and SHA. Record all three,
+  plus the read date, in the research file so the citation survives a branch
+  move.
+- **Cite the pinned commit.** `sources:` and inline links point at
+  `.../blob/<sha>/<path>`, never `main`.
+- **Reuse the scout.** Keep its `childThreadId` and hand it to later subagents
+  (fork one per receiver) so they ask it instead of re-crawling.
+
+The `codebase-scout` and `library-source` skills hold the flow, the call
+shapes, and the scout's reply format.
 
 ---
 
@@ -202,7 +239,8 @@ For any task that involves looking something up:
 2. **Search externally with TinyFish** (`mcp__tinyfish__search`) — mandatory
    for anything outside this repo (see §2).
 3. **Read the sources with TinyFish** (`mcp__tinyfish__fetch_content`) — not
-   with any other fetch tool.
+   with any other fetch tool. When the source *is* a codebase, delegate a scout
+   that spawns the cloner instead (§2).
 4. **Write/update** the Markdown file using the correct template and category,
    citing the URLs TinyFish returned.
 5. **Update the category index** (`research/<category>/README.md`).
@@ -220,7 +258,8 @@ A research task is done when:
 - [ ] A Markdown file exists in the correct `research/<category>/` directory.
 - [ ] Valid front matter is present and accurate.
 - [ ] External sources were gathered via TinyFish (`mcp__tinyfish__search` /
-      `mcp__tinyfish__fetch_content`), or a documented fallback reason exists.
+      `mcp__tinyfish__fetch_content`), via a scout + cloner checkout (§2), or a
+      documented fallback reason exists.
 - [ ] Every non-obvious claim has a source link.
 - [ ] The category index links to the new/updated file.
 - [ ] Related files are cross-linked.
@@ -231,10 +270,45 @@ A research task is done when:
 ## 9. Prohibited
 
 - Using a non-TinyFish tool for external search or fetching when TinyFish is
-  available (see §2).
+  available (see §2). Source checkout is the exception, and it goes through the
+  scout's cloner, not a hand-run `git clone` (§2).
+- Crawling a codebase in the main context instead of through a scout (§2).
 - Leaving research only in chat, terminal output, or memory.
 - Creating files at the repo root (except `AGENTS.md`, `README.md`).
 - Editing files in `archive/` (append a note instead; keep history).
 - Deleting research. Supersede it: move to `archive/` and link the replacement.
 - Committing raw binaries into `research/` (put them in `sources/` and link).
 - Presenting uncited claims as fact.
+
+---
+
+## 10. Audience & Output Style
+
+### Technical peer
+
+> **Peer level.** The reader is fluent in web development, programming, backend, and
+> full-stack engineering. Explain with the precise technical term and the named pattern;
+> the reader will ask about terms that are new to them. Reach for an analogy only when the
+> concept has no technical name.
+
+### Comparison tables — wide format
+
+> **Wide table.** Prefer tables for comparing technologies. Compared items go across the
+> columns (one item per column); comparison dimensions go down the rows. Each cell holds a
+> single light clause — never a multi-sentence cell. When a dimension needs prose, move it
+> into its own section below the table and leave a short pointer in the cell.
+
+---
+
+## 11. Research Modes — RFD & RFO
+
+Two named modes extend an existing comparison. The user invokes them by name in a prompt.
+
+> **RFD — research for deeper.** Deepen the comparison already in hand: research the
+> existing candidates further so each one's distinct value is sharp and the reader can pick
+> the candidate that fits them.
+
+> **RFO — research for other.** Widen the comparison: find additional candidates. Aim the
+> search along the comparison's key axis — comparing speed means looking for faster
+> candidates, comparing cost means cheaper ones. Fold every new candidate into the existing
+> wide table as a new column; start a new table only when none exists.
