@@ -13,7 +13,7 @@ sources:
   - https://id.wikipedia.org/wiki/Mati_listrik_Jawa_2019
   - https://www.kompas.id/artikel/en-tragedi-blackout-listrik-sumatera-dari-kekacauan-ekonomi-hingga-hilangnya-nyawa
   - http://www.journal.stkipsubang.ac.id/index.php/didaktik/article/download/11102/6490
-confidence: high
+confidence: medium
 ---
 
 # MATI LAMPU — Blackout Bar Brawl
@@ -33,7 +33,7 @@ closing time with the most money.
 
 - **Genre:** hidden-movement / fog-of-war brawl with a shared physical board — the
   closest published relatives are *Escape from the Aliens in Outer Space* (noise cards)
-  and *Letters from Whitechapel* (trail deduction) [1](https://www.eftaios.com/ruleditor.html) [2](https://norollsbarred.com/articles/now-you-see-me-a-guide-to-hidden-movement-games/).
+  and *Letters from Whitechapel* (trail deduction) [1](https://www.eftaios.com/ruleditor.html) [2](https://norollsbarred.com/articles/now-you-see-me-a-guide-to-hidden-movement-games/); both are surveyed in the genre round-ups at [5](https://meeplescorner.net/blogs/meeple-musings/what-are-hidden-movement-board-games-everything-you-need-to-know) [6](https://theplayersaid.com/2024/03/22/best-3-games-with-hidden-movement/).
 - **The one mechanic it is built around:** the **light level is public and changes every
   round**, and it sets everyone's vision radius *at the same time*. Darkness is not a
   punishment aimed at you; it is a shared resource that flips the game between a
@@ -54,7 +54,7 @@ closing time with the most money.
 ### 1. Pitch
 
 It is 11pm. The *gardu* (neighbourhood transformer) blows and the whole street goes
-dark. In the bar, the music stops, the freezer hums down, and eleven people who were
+dark. In the bar, the music stops, the freezer hums down, and a handful of people who were
 politely ignoring each other are suddenly alone together with a lot of loose cash and a
 lot of unresolved history. The genset is in the back room. Someone is going to try to
 start it. Someone else is going to be very unhappy if they do.
@@ -185,7 +185,7 @@ Rules that make this the whole game:
 
 ### 8. Archetypes
 
-Six archetypes, chosen at the start, each a recognisable Jakarta street figure. They are
+Six archetypes, chosen at the start, each a recognisable Jakarta street figure. The *tukang parkir* role in particular is a well-documented structural feature of Indonesian urban economies, not a bit of colour [7](http://www.journal.stkipsubang.ac.id/index.php/didaktik/article/download/11102/6490). They are
 deliberately **not** balanced to equal win rates; they are balanced to *different* win
 rates, because the game's fun comes from arguing about whether the Bule is too strong.
 
@@ -419,6 +419,7 @@ the game supports up to 6 players without an asymmetric role split [2](https://n
 
 ## Related
 
+- [Fog of War Board Games — Hidden Movement, Block Wargames, and Shared Blindness](../product/fog-of-war-board-games.md) — the genre survey this design sits inside; MATI LAMPU is the file's cleanest example of the "shared blindness" family (the fog is a table-wide light level, not a hidden player).
 - [Mascarade — Bluffing Game Guidelines](../../mascarade-guidelines.md) — the repo's other
   hidden-information game doc; *Mascarade* hides *identity*, *Mati Lampu* hides
   *position*, and both are driven by a shared table-level uncertainty.
