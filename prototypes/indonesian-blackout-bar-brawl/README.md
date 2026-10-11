@@ -30,6 +30,7 @@ target. Keyboard: `e` end turn, `s` search, `h` hide.
 | `index.html` | Single-file playable UI (canvas board, hot-seat, CPU opponents). |
 | `sim.js` | Headless CPU-vs-CPU simulator with invariant assertions. |
 | `ui-contract.js` | Asserts every action shape the UI can emit is accepted by the engine. |
+| `measure.js` | A/B harness over map layout × light radius. The numbers in the design doc come from here. |
 | `browser-smoke.sh` | Headless-Chrome test that the page loads, runs a game, and never throws. |
 
 ## Verify
@@ -37,6 +38,7 @@ target. Keyboard: `e` end turn, `s` search, `h` hide.
 ```sh
 node sim.js 600          # 600 games; asserts invariants I1–I9; exits non-zero on violation
 node sim.js 200 --json   # machine-readable summary
+node measure.js 400      # A/B: map layout x light radius (4 cells)
 node ui-contract.js      # UI <-> engine contract
 ./browser-smoke.sh       # real browser, real game, zero JS errors
 ```
@@ -55,11 +57,12 @@ node ui-contract.js      # UI <-> engine contract
 
 ## Design notes worth knowing before you edit
 
-- **The map topology is a balance parameter.** The first map was a maze; line-of-sight
-  through corridors capped visible tiles at ~18 regardless of light level, so the light
-  die did nothing and combat almost never happened (0.27 KOs/game, 0 satpam catches).
-  Flattening it to a real bar floor took enemy visibility from 3.3% to 35% and satpam
-  catches from 0 to 7.9/game. If you add walls, re-run `sim.js` and watch those numbers.
+- **The map topology is the balance parameter, not the light radii.** Moving from the
+  first (maze) map to the open bar floor is what created a brawl: KOs/game 0.66 -> 1.07
+  and knockout endings 1.5% -> 10.5% (``node measure.js 400``). Widening the light
+  radii changed almost nothing (~1 point of visibility) and actually *lowered* satpam
+  catches (10.1 -> 8.0/game), because players who see more avoid the guard. If you add
+  walls, re-run `measure.js` and watch KOs/game and knockout endings.
 - **All randomness is seeded and lives in `state.rngSeed`.** Never add `Math.random` to
   the engine; it would break reproducibility and the tests.
 - **The AI must only use what the acting player can see.** `visibleSet(state, player)` is

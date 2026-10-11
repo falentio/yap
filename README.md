@@ -13,6 +13,7 @@ A research and knowledge archive. Findings live here as durable Markdown.
 | [`notes/`](./notes/) | Fleeting thoughts and an inbox for triage |
 | [`archive/`](./archive/) | Superseded material, kept for history |
 | [`templates/`](./templates/) | Starting points for new files |
+| [`prototypes/`](./prototypes/) | Working code built to support a research file (engines, simulators, demos) |
 
 ## Research categories
 

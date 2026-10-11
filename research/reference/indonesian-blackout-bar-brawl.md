@@ -45,7 +45,7 @@ closing time with the most money.
   you visible to everyone on the board at once. Vision is bought with exposure.
 - **Fully specified and simulated.** A DOM-free engine plus a 600-game headless
   simulation exist under [prototypes/indonesian-blackout-bar-brawl/](../../prototypes/indonesian-blackout-bar-brawl/);
-  the numbers in §12 are what that simulation actually reports.
+  the numbers in §12 are what that simulation actually reports, reproducible via `node measure.js`.
 
 ---
 
@@ -278,25 +278,42 @@ A complete implementation lives in
 [prototypes/indonesian-blackout-bar-brawl/](../../prototypes/indonesian-blackout-bar-brawl/):
 a DOM-free engine (`engine.js`), a shared heuristic policy (`ai.js`), a headless
 simulator (`sim.js`), a UI/engine contract test (`ui-contract.js`), a browser smoke
-test (`browser-smoke.sh`), and a playable single-file UI (`index.html`).
+test (`browser-smoke.sh`), a layout/light A/B harness (`measure.js`), and a playable
+single-file UI (`index.html`).
 
-The simulator is the design tool, and it changed the design. The first version of the map
-was a **maze**, and the invariant-annotated simulation immediately exposed the consequence:
+The simulator is the design tool, and it changed the design. The first map was a
+**maze** (corridors and dead ends). Two things were wrong with it, and
+`measure.js` separates them by running all four combinations of map × light radius
+with one harness and one AI (`node measure.js 400`, 400 games per cell):
 
-| Metric | Maze map (first draft) | Open-bar map (current) |
-|---|---|---|
-| Enemy positions ever visible | **3.3%** of samples | **35.0%** |
-| Attacks attempted per game | 0.5 | 2.4 |
-| Pak Satpam catches per game | **0** | **7.9** |
-| KOs per game | 0.27 | 1.10 |
-| Games ending with a knockout | 0/200 | 65/600 |
-| Light level actually mattered | no (LOS-capped) | yes |
+| Map / light radius | Enemy positions visible | Attacks per game | Satpam catches per game | KOs per game | Games ending in a knockout |
+|---|---|---|---|---|---|
+| maze / narrow (1,2,3) | 27.8% | 4.6 | 10.13 | 0.64 | 1.3% |
+| maze / wide (2,3,4) | 28.9% | 4.6 | 10.11 | 0.66 | 1.5% |
+| bar / narrow (1,2,3) | 31.1% | 4.9 | 8.09 | 1.02 | 10.0% |
+| **bar / wide (2,3,4)** — shipped | **33.1%** | **5.2** | **8.01** | **1.07** | **10.5%** |
 
-The bug was not in the code — it was in the **design**. Line-of-sight through a maze
-capped visible tiles at ~18 no matter how bright the light was, so the light die was
-decorative and combat almost never happened. Widening the map to a real bar floor fixed
-both. This is the argument for building the simulator before the rulebook: a fog-of-war
-game's *map topology* is a balance parameter, and you cannot feel it by reading.
+Two conclusions, one of which was a surprise:
+
+1. **The map is the balance parameter.** Moving from the maze to the open bar floor is
+   what produced a brawl: KOs per game went 0.66 → 1.07 and knockout endings went
+   1.5% → 10.5%. In a maze, line-of-sight is capped by the corridors, so combat is rare no
+   matter how the rest of the numbers are tuned. Flattening the map is the single change
+   that made the game work.
+2. **Widening the light radii barely mattered — and it made the satpam *worse*.** The
+   `narrow → wide` step moves visibility by about one point and KOs by ~0.05,
+   i.e. almost nothing, because the map's line-of-sight does the real work. It also *lowers*
+   satpam catches (10.1 → 8.0), because players who can see more avoid the guard more
+   easily. The light radii were kept wide anyway (they make the three light states feel
+   distinct to a human player), but they are not a balance lever — **do not tune the game
+   by changing them.**
+
+A note on honesty: an earlier draft of this document quoted a "3.3% visibility, 0 satpam
+catches" figure for the maze. That number came from a buggy harness that mis-measured
+visibility, and the "0 catches" claim was never true — the satpam caught players *more*
+often on the maze. Both are corrected above. This is exactly why the measurement harness
+exists: it is easy to believe a plausible-sounding number about a fog-of-war game, and
+hard to verify one without running it.
 
 Final 600-game run (seed 1..600, 2–6 players, mixed archetypes):
 
@@ -417,5 +434,7 @@ the game supports up to 6 players without an asymmetric role split [2](https://n
 ## Changelog
 
 - 2026-10-11 — created. Engine, AI, 600-game simulation, UI contract test, and browser
-  smoke test all passing; design tuned against simulation output (maze → open bar map
-  raised visibility from 3.3% to 35% and satpam catches from 0 to 7.9 per game).
+  smoke test all passing. Design tuned against simulation output: the maze → open-bar map
+  change raised KOs/game 0.66 → 1.07 and knockout endings 1.5% → 10.5%. Corrected an
+  earlier draft's incorrect claim that satpam catches were 0 on the maze (they were ~10/game;
+  see §12) after re-measuring all four map × light-radius cells with `measure.js`.
