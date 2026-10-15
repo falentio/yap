@@ -747,6 +747,8 @@ The load-bearing obligations, in the order a connection meets them:
   surface-and-protocol inventory in this same reference category.
 - [Effect v4 Primitives — A Reader's Map](./effect-v4-primitives.md) — reference style in
   this category, useful for the model-first framing if this doc is expanded.
+- [Architectural Decisions for a Pusher-Compatible Server on Cloudflare Durable Objects](../technology/pusher-server-durable-objects-architecture.md)
+  — the design that implements this contract on Cloudflare Durable Objects.
 
 ## Changelog
 
