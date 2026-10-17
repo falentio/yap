@@ -434,6 +434,9 @@ const client = yield* RpcTest.makeClient(Rpcs).pipe(Effect.provide(Handlers))
 
 - [Turso for Production Use — Reliability Assessment](./turso-production-reliability.md) — unrelated
   topic; kept here only as the other `technology` entry.
+- [Drizzle ORM with Effect-TS — Integration Lines](./drizzle-effect-integration.md) — a consumer of
+  the v4 packaging story: Drizzle's `effect-*` drivers require Effect 4.x; the v3 pairing lives in
+  `@effect/sql-drizzle`.
 
 ## Changelog
 

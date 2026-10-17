@@ -472,6 +472,9 @@ Convention: use `.pipe` for multi-step chains, the direct form for one-shot call
   `Stream` for streaming responses.
 - [Effect v4 RPC in a Modular Monolith — Product Service](../howto/effect-v4-rpc-modular-monolith-product-service.md)
   — a worked repository / service / RPC example built from these primitives.
+- [Drizzle ORM with Effect-TS — Integration Lines](../technology/drizzle-effect-integration.md) — the
+  `Context`/`Layer` pattern applied to a database service, and how `Schema` decoding pairs with a
+  generated SQL-schema module.
 
 ## Changelog
 
