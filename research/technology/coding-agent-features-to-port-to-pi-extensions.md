@@ -50,6 +50,7 @@ confidence: medium
   bash input) are value 5 at effort S; an OS-enforced sandbox (`sandbox-exec` / `bwrap`+`seccomp`)
   is the only row on the board that shrinks the blast radius of a bad command instead of the odds
   of one being issued.
+- **Agent-capability view (§11).** Cutting operator-facing rows and re-ranking by *compounding* and *self-evidence* flips the build order: perception and closed-loop verification first, judgment second, autonomy last, because autonomy only multiplies whatever quality already exists.
 - **Most of what peers ship, pi already has**: `--print`/`--mode json`/`--mode rpc`, session
   fork/resume, compaction, providers, MCP, themes, prompt templates. The port list is short
   because the platform is not.
@@ -473,29 +474,88 @@ it is the prerequisite for three other rows, and it is the difference between an
 leave unattended and one you cannot. **If only two ship:** add the hook bridge (#5) — it is what
 lets everyone else's hooks, and every future contributor's bash script, run on pi.
 
-## 10. Build order
+## 11. The agent-capability view — if operator experience is out of scope
 
-**Wave 0 — one afternoon each, no architecture.** #3 Oracle, #4 Plan/Act gate, #11
-skill re-injection, #12 `/goal`, #13 bounded continuation, #18 notifications. Each is one hook
-or one tool plus one prompt; together they close most of the day-to-day gap.
+The ranking above optimises for behaviour change per unit of adoption friction, which lets
+operator-facing rows (a `/diff` viewer, status notifications, a denial queue) sit beside
+rows that change what the agent can *do*. Re-cut the same inventory along agent capability
+only, and the order changes, because two properties matter that the earlier table does not
+score:
 
-**Wave 1 — the missing layer.** #1 permissions first, because #4, #14, #15 and every
-`acceptEdits`-style mode depend on it; then #2 the hook bridge, which is only worth shipping
-once a policy already exists to be expressed in shell; then #15 the denial queue, which is the
-UX half of #1.
+- **Compounding.** Does the improvement raise the quality of every later turn (perception) or
+  only of the interaction that invoked it?
+- **Self-evidence.** Does it make the agent *prove* a claim, or merely assert one?
 
-**Wave 2 — context quality.** #5 feedback loop, #7 glob-scoped rules, #16 skill-scoped MCP,
-#10 secret redaction. These change what the model sees rather than what it may do.
+### Layers of an agent, and where each row lands
 
-**Wave 3 — only with a design first.** #6 checkpoints (needs the shadow-VCS decision from gap
-2), #9 review fan-out (needs a child registry, gap 3), #20/#21 (LSP and tree-sitter — a real
-dependency and a real token budget), #23 resumable exec (needs process supervision, gap 1).
+| Layer | What it buys | Rows that land here |
+|---|---|---|
+| **Perception** — what the agent can know | every later turn starts better informed | tree-sitter repo map, LSP-backed context, glob-scoped rules, instruction-file loader, skill re-injection after compaction, skill-scoped MCP, compaction summary quality |
+| **Action fidelity** — whether an edit lands correctly | fewer blind edits, fewer corrupt states | post-edit formatter, lint/test repair loop, post-edit diagnostics, command rules, OS sandbox, `shell_environment_policy`, secret redaction, doom-loop guard |
+| **Judgment** — whether the agent decides well | better approach chosen before tokens burn | Oracle/advisor, review pass, review fan-out (Checks), Plan/Act gate, architect dual-model split, declarative agent/mode profiles |
+| **Autonomy** — turns per human interruption | more work per supervision event | `/goal`, bounded continuation, auto-review of denials, checkpoints, subagent control plane, dynamic workflows, resumable exec |
 
-**If only one ships:** the permission policy engine. Seven independent products built one, it
-is the prerequisite for three other rows, and it is the difference between an agent you can
-leave unattended and one you cannot.
+### Re-ranked for agent capability
 
-## 11. Open questions and limits
+| # | Row | Why it improves the *agent* | Layer | Compounds | V | E |
+|---|---|---|---|---|---|---|
+| 1 | **Command rules** | Bounds the worst single action; makes unattended runs survivable | action | no | 5 | S |
+| 2 | **Post-edit feedback loop** | Converts a blind edit into closed-loop repair: the edit's own errors arrive as the next turn | action | yes | 5 | M |
+| 3 | **Oracle / advisor** | A judgment escalation that costs nothing when unused | judgment | no | 5 | S |
+| 4 | **Plan/Act gate** | Forces a plan artifact before any mutation, so the plan gets evaluated instead of retconned | judgment | yes | 5 | S |
+| 5 | **Skill re-injection after compaction** | Stops the agent forgetting its own procedure mid-task | perception | yes | 4 | S |
+| 6 | **Glob-scoped rules + instruction loader** | Right instructions at the moment the relevant file is touched, not a wall at startup | perception | yes | 4 | M |
+| 7 | **Post-edit diagnostics (LSP/typecheck)** | The compiler becomes part of the loop instead of the reviewer | action | yes | 5 | M |
+| 8 | **Secret redaction + `shell_environment_policy`** | Keeps credentials out of the context the agent reasons over and the transcript it leaves | action | yes | 4 | M |
+| 9 | **Review pass (fresh context)** | An independent read of the diff, which the authoring context cannot do | judgment | no | 5 | M |
+| 10 | **OS sandbox** | Safe autonomy: confines the process, not just the call | action | no | 5 | M |
+| 11 | **Auto-review of denials** | Autonomy without a human in the loop | autonomy | no | 4 | L |
+| 12 | **Checkpoints (shadow git)** | Makes try-and-revert cheap, so the agent explores more and commits to less | autonomy | yes | 5 | M |
+| 13 | **Subagent control plane** | Parallel perception and independent review; amplifies rows 2, 7, 9 | perception + judgment | yes | 5 | L |
+| 14 | **LSP-backed context tool** | Definitions and references instead of grep-and-read | perception | yes | 5 | L |
+| 15 | **Tree-sitter repo map** | Repo-scale awareness inside a token budget | perception | yes | 4 | L |
+| 16 | **`/goal`** | A completion condition the agent checks, instead of stopping when it feels done | autonomy | no | 4 | S |
+| 17 | **Bounded continuation** | N turns of self-direction without a human wake | autonomy | no | 4 | S |
+| 18 | **Declarative agent/mode profiles** | Per-task model, tools, and policy instead of one global default | judgment | yes | 4 | M |
+| 19 | **MCP tool filtering + per-tool approval** | Fewer, better-described tools in context | perception | yes | 4 | S |
+| 20 | **Doom-loop guard** | Catches the failure mode that burns the most tokens per unit of progress | action | no | 3 | S |
+| 21 | **Dynamic workflows** | The plan lives in code and outlives the context window | autonomy | yes | 4 | L |
+| 22 | **Resumable exec** | Verification that outlives one command (test suites, long builds) | action | yes | 4 | L |
+
+### Cut, because it improves the operator and not the agent
+
+`/diff` viewer · turn-complete notifications and attention sounds · `/statusline` and `/title`
+pickers · `/context` and `/usage` panels · denial-queue UI (keep the auto-reviewer, drop the
+queue) · commit-provenance trailers · `/import` · `/recap` · output styles as presentation.
+`--output-schema` is the borderline case: it constrains the agent's own final answer, which
+helps a machine consumer but not the agent's reasoning, so it belongs to integration work.
+
+### The ordering rule this view implies
+
+**Autonomy multiplies whatever quality is already there.** Adding `/goal` and bounded
+continuation to an agent that cannot verify its own edits produces confident wrong work
+faster; adding the post-edit feedback loop first turns the same autonomy into throughput.
+So the build order flips: perception and verification first, judgment second, autonomy last —
+the reverse of the operator-facing ranking, where autonomy features looked cheap and
+attractive.
+
+| Wave | Rows | Why this order |
+|---|---|---|
+| A — perception that compounds | #5 skill re-injection, #6 glob rules, #19 MCP filtering, #18 profiles | Cheapest rows that improve every subsequent turn |
+| B — closed loop | #2 feedback loop, #7 diagnostics, #8 redaction, #1 command rules | Makes every edit self-checking before autonomy is considered |
+| C — judgment | #3 Oracle, #9 review pass, #4 Plan/Act | Improves decisions that are expensive to reverse |
+| D — safe autonomy | #10 sandbox, #12 checkpoints, #11 auto-review, #16/#17 goal and continuation | Only after A–C make the output worth leaving alone |
+| E — amplification | #13 subagent control plane, #14/#15 LSP and repo map, #21/#22 | High effort; pays off only once per-turn quality is already good |
+
+### The measurement gap, which is itself an agent improvement
+
+None of waves C–E can be evaluated without a task suite: a fixed set of repo tasks with pass
+criteria, run before and after each change. Without it, "review pass helped" and "Oracle
+helped" are opinions, and the agent-improvement roadmap becomes a taste contest. pi ships no
+eval loop; the smallest useful version is a command that runs N tasks in fresh sessions from a
+fixture repo and reports pass rate plus tokens per task. Build it before wave C, not after.
+
+## 12. Open questions and limits
 
 - **Codex was written twice.** The section was first drafted in the main thread from a targeted
   fetch, then replaced wholesale when the dedicated worker reported (Codex CLI 0.164.0, repo pin
@@ -522,6 +582,7 @@ leave unattended and one you cannot.
 
 ## Changelog
 
+- 2026-10-26 — added §12, the agent-capability view: a re-cut ranking that drops operator-facing rows and reorders the build by compounding perception and closed-loop verification, plus the eval-suite prerequisite for judging judgment and autonomy work. Removed a duplicated Build order block left by an earlier splice.
 - 2026-10-26 — Codex section replaced with the dedicated worker's inventory (CLI 0.164.0, repo
   pin `970111f6cb62`); ranked list re-sorted to include command rules, the OS sandbox, `/review`,
   MCP tool filtering and `--output-schema`; TL;DR corrected.
