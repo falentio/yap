@@ -152,7 +152,10 @@ oracle so cost only lands when the main agent asks for a second opinion. In pi t
 `registerTool` with a read-only loadout (`ctx.executeTool` reachable only to read/grep/glob),
 one `ctx.modelRegistry.streamSimple()` call on a pinned stronger model, and `usage` folded
 into the tool result so session totals stay honest. Effort S, and it improves the main loop
-without slowing it.
+without slowing it. One caveat on the pi side: `streamSimple` is a bare model call, so an
+advisor that only needs an opinion gets the transcript as context, while an advisor that must
+*read files* has to loop over `ctx.executeTool` limited to read tools — which is a subagent by
+another name, and inherits gap 3 (§8).
 
 **Why secret redaction is second.** It is the only feature here that changes the threat model
 rather than the ergonomics: pi's `tool_result` hook can rewrite content *and*
