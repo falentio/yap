@@ -10,6 +10,11 @@ sources:
   - https://code.claude.com/docs/en/hooks
   - https://opencode.ai/docs/plugins/
   - https://learn.chatgpt.com/docs/developer-commands
+  - https://learn.chatgpt.com/docs/hooks
+  - https://learn.chatgpt.com/docs/permissions
+  - https://learn.chatgpt.com/docs/agent-approvals-security
+  - https://learn.chatgpt.com/docs/non-interactive-mode
+  - https://learn.chatgpt.com/docs/agent-configuration/rules
   - https://learn.chatgpt.com/docs/sandboxing
   - https://opencode.ai/docs/permissions/
   - https://cursor.com/docs/rules
@@ -29,18 +34,22 @@ confidence: medium
   Codex, OpenCode and the peers: permissions, external-process hooks, checkpoints, a
   second-opinion advisor, scoped instruction files, declarative agent profiles, and the
   post-edit feedback loop. The rest is packaging, or hosted infrastructure that does not port.
+  One row has a single vendor and still matters: the OS-level sandbox, which only Codex ships.
 - **pi's biggest gap is permissions.** Seven independent products ship a per-tool, per-argument
   allow/ask/deny policy with a one-flag auto mode. pi's own docs say it never asks before
   running a tool, and its `permission-gate.ts` example is a proof of concept, not a policy
   engine. This is the one row that is both missing and consensus.
 - **pi's biggest missing *seam* is out-of-process hooks.** Claude Code runs shell, HTTP, prompt
-  and agent handlers on 33 lifecycle events and uses the exit code as the decision. pi's hooks
-  are richer but in-process TypeScript only, so a hook cannot be a bash script.
+  and agent handlers on 33 lifecycle events; Codex ships a `hooks.json` over 13. Both use the
+  exit code as the decision. pi's hooks are richer but in-process TypeScript only, so a hook
+  cannot be a bash script.
 - **Best value per unit effort: the Oracle/advisor tool** (`S`) — Amp's Oracle, Claude Code's
   advisor and Aider's architect are the same idea: one `registerTool` + one
   `ctx.modelRegistry.streamSimple()` call on a stronger model with a read-only loadout.
-- **The sleeper is Codex's `/import`** — read a Claude Code / Cursor setup and emit pi skills,
-  prompt templates and extension config. Cheapest adoption lever on the board.
+- **Two rows only Codex ships, and both are cheap.** Command rules (a `.rules` prefix trie over
+  bash input) are value 5 at effort S; an OS-enforced sandbox (`sandbox-exec` / `bwrap`+`seccomp`)
+  is the only row on the board that shrinks the blast radius of a bad command instead of the odds
+  of one being issued.
 - **Most of what peers ship, pi already has**: `--print`/`--mode json`/`--mode rpc`, session
   fork/resume, compaction, providers, MCP, themes, prompt templates. The port list is short
   because the platform is not.
@@ -158,49 +167,63 @@ remote control (relay service); thread colours/pin/snooze (cosmetic); `amp.tools
 executables (MCP supersedes); the editor review panel/Tab/diagnostics (extension killed
 2026-03-05).
 
-## 3. Codex — a workstation product now, and `/import` is its best idea
+## 3. Codex — the only OS-level sandbox, and a `hooks.json` that proves the hook bridge
 
-Codex CLI has become a surface of the larger "ChatGPT Work" product: config is layered
-(`~/.codex/config.toml`, project `.codex/config.toml`, `--profile` files, managed org policy),
-hooks exist as **managed MCP hooks that run on the cloud coordinator**, skills can declare MCP
-dependencies, and command execution is resumable (`features.unified_exec`, `write_stdin`).
-Most of that is infrastructure, and infrastructure does not port. Three things do.
+Read against **Codex CLI 0.164.0** and `openai/codex` at `970111f6cb62` (2026-10-23). Note the
+docs moved: `developers.openai.com/codex/*` now redirects to `learn.chatgpt.com/docs/*`, so
+every 2025 bookmark is a redirect. Two rows here outrank most of the board.
 
 | Feature | What it does | pi surface | Value | Effort | Evidence |
 |---|---|---|---|---|---|
-| **`/import`** | Imports a Claude Code or Cursor setup into Codex | command | 4 | M | https://learn.chatgpt.com/docs/developer-commands |
-| **`/goal`** | Sets a task goal; the model checks it after turns | `agent_before_settle` | 4 | S | https://learn.chatgpt.com/docs/developer-commands |
-| **Auto review of denials + `/approve`** | A denied action is reviewed, then approvable in-session | `tool_call` + UI | 4 | M | https://learn.chatgpt.com/docs/developer-commands |
-| `/worktree` | Continues the session in a git worktree | command | 3 | M | https://learn.chatgpt.com/docs/developer-commands |
-| `/diff` | Reviews the working-tree diff in-session | command + UI | 3 | S | https://learn.chatgpt.com/docs/developer-commands |
-| Resumable exec (`write_stdin`) | A long command stays alive and accepts stdin | blocked by pi's gap 1 | 4 | L | https://learn.chatgpt.com/docs/config-file/config-reference |
-| Permission profiles + `/permissions` | Named approval/sandbox policy sets, switchable mid-session | `tool_call` + command | 4 | M | https://learn.chatgpt.com/docs/sandboxing |
-| `/debug-config` | Shows the resolved config layers | command | 3 | S | https://learn.chatgpt.com/docs/developer-commands |
-| Sandbox modes (seatbelt / landlock / Windows) | OS-level syscall and network confinement | native-required | 4 | — | https://learn.chatgpt.com/docs/sandboxing |
-| Managed MCP hooks, plugins, marketplaces | Org policy, hook callbacks on a cloud coordinator | native-required (hosted) | 2 | — | https://learn.chatgpt.com/docs/config-file/config-reference |
+| **OS sandbox** (Seatbelt / bwrap+seccomp) | Runs every spawned command under OS-enforced filesystem and network limits | tool replacing bash | 5 | M | https://learn.chatgpt.com/docs/agent-approvals-security |
+| **`approval_policy` + `/permissions` profiles** | Asks at the boundary; named fs/network policy per profile | `tool_call` + command | 5 | M | https://learn.chatgpt.com/docs/permissions |
+| **Command rules (`.rules`, execpolicy)** | Prefix rules allow, prompt, or deny commands outside the sandbox | `tool_call` + command | 5 | S | https://learn.chatgpt.com/docs/agent-configuration/rules |
+| **`/review` + `codex review`** | Read-only prioritised review of uncommitted, base, or commit | command + tool | 5 | M | https://learn.chatgpt.com/docs/developer-commands?surface=cli#cli-codex-review |
+| **`hooks.json` lifecycle bridge** | Declarative shell or MCP hooks at thirteen lifecycle events | hook bridge | 4 | M | https://learn.chatgpt.com/docs/hooks |
+| `/diff` viewer | Paged git diff including untracked files, inside the TUI | command + UI | 4 | S | https://learn.chatgpt.com/docs/developer-commands?surface=cli |
+| MCP tool filtering + approval | Per-server allow/deny lists, per-tool approval, output caps | hook + `registerMcpServer` | 4 | S | https://learn.chatgpt.com/docs/extend/mcp |
+| `--output-schema`, `-o`, `--ephemeral` | JSON-Schema-constrained final answer plus a last-message file | flag | 4 | S | https://learn.chatgpt.com/docs/non-interactive-mode |
+| Plan mode (`/plan`) | Read-only planning phase with its own reasoning effort | command + hook | 4 | M | https://learn.chatgpt.com/docs/developer-commands?surface=cli |
+| `shell_environment_policy` | Strips secrets from the environment handed to spawned commands | `tool_call` on bash | 3 | S | https://learn.chatgpt.com/docs/config-file/config-advanced |
+| `notify` turn-complete hook | Runs an external program with JSON when a turn completes | `agent_settled` | 3 | S | https://learn.chatgpt.com/docs/config-file/config-advanced |
+| `/statusline` + `/title` pickers | Chooses and reorders footer status fields | `ctx.ui` widget | 3 | M | https://learn.chatgpt.com/docs/developer-commands?surface=cli |
+| Auto-review (`approvals_reviewer = auto_review`) | A reviewer agent decides sandbox escalation requests instead of you | hook + subagent | 3 | L | https://learn.chatgpt.com/docs/sandboxing/auto-review |
+| `/import` | Imports a Claude Code or Cursor setup | command | 2 | M | https://learn.chatgpt.com/docs/developer-commands?surface=cli |
 
-**`/import` is the sleeper.** Every agent in this study competes for the same users, and the
-cheapest adoption lever is reading the *other* agent's config: `.claude/settings.json` hooks,
-`CLAUDE.md`, `.cursor/rules/*.mdc`, `AGENTS.md`. For pi — which has no built-in permission
-engine, no hook file format, and a narrower instruction-file scope — an importer that reads
-Claude Code settings and Cursor rules and emits pi skills, prompt templates, and an extension
-config would convert a locked-in setup into a working pi setup in one command. Codex shipped
-exactly this, which is the strongest evidence that the demand is real.
+**The sandbox is the one thing nobody else in this study does at the OS level.** Claude Code,
+Amp and OpenCode all gate *tool calls*; Codex confines the *process*. For pi that means a tool
+that replaces `bash` with a wrapper (`sandbox-exec` on macOS, `bwrap` + `seccomp` on Linux) and
+declares its policy per call. Effort M because it is a wrapper, not a kernel feature — but it is
+the only row on the board that changes the blast radius of a bad command rather than the odds
+of one being issued.
 
-**Auto review of denials** is the other idea worth stealing: a denial is not a terminal state,
-it is a queue. Claude Code asks, Codex defers the decision to a reviewer and exposes it as
-`/approve`, and pi's `tool_call` hook can already *defer* by returning a reason — what is
-missing is the queue and the UI to drain it.
+**Command rules are the cheapest high-value row anywhere in this report.** A `.rules` file maps
+command prefixes to allow / prompt / deny, and Codex evaluates it before the sandbox. In pi that
+is a `tool_call` handler over the bash input with a prefix trie — value 5, effort S. It also
+composes with the permission engine (§9 row 1) as its command-level predicate.
 
-**Not worth porting from Codex:** managed MCP hooks and plugin marketplaces (cloud coordinator
-infrastructure); the OS sandbox implementations (native system calls — pi could only wrap an
-existing sandbox binary); `/pets`, `/theme`, `/title`, `/statusline` (cosmetic, and pi's
-`ctx.ui` covers status and title); `/memories` (value 2, silent context growth); config-layer
-profiles beyond a thin `--profile` flag.
+**`hooks.json` closes the hook-bridge argument.** Claude Code proves the contract at 33 events,
+Codex proves it independently at 13, and Gemini CLI and Kiro do the same — four vendors, one
+shape: a declarative file, an external process per event, an exit-code decision. The bridge is
+no longer a Claude-Code quirk to be emulated; it is the de-facto standard pi is missing.
 
-*(This section was written in the main thread from a targeted TinyFish fetch of
-`learn.chatgpt.com` — the dedicated Codex worker did not report before the write-up began. The
-row set is smaller than the other inventories for that reason; see Open questions.)*
+**`/import` is a migration lever, not a primitive** — rated 2 by the Codex slice, and correctly:
+pi has little config to populate (skills, prompt templates, an extension config), so the importer
+converts enthusiasm rather than capability. Worth building after the primitives, not before.
+
+**Not worth porting from Codex:** `/compact` and custom prompts (pi has both; Codex itself
+deprecated prompts in favour of skills); AGENTS.md discovery (pi already implements
+`AGENTS.override.md` / `AGENTS.md` / `CLAUDE.md`; only the 32 KiB cap and fallback-name list are
+missing); image input, `/new`, `/fork`, `/resume`, `/clone`, `/copy`, `/export` (native); TUI
+paging and image protocols (implementation detail, not extension surface); `codex cloud`,
+`codex apply`, app server, `--remote` (vendor-locked or redundant with pi's RPC and SDK);
+`update_plan` (pi's `todo` is better); managed `requirements.toml` policy, OTel export, role
+catalogs, gateway providers (enterprise fleet controls); `--full-auto` (**no longer documented**
+as of 2026-10-26 — do not port a retiring flag); plugins and marketplaces (pi packages);
+`/worktree`, `/cd`, `/daemon`, `/keymap`, `/theme`, `/pets` (session plumbing and
+personalisation). Note `/undo` does not exist in Codex either: its affordance is
+edit-the-last-message-and-fork, which pi's `/fork` already gives.
+
 ## 4. Claude Code — hooks are the product, everything else is packaging
 
 Claude Code has the largest surface in the set (40 candidate features in the worker's
@@ -345,8 +368,8 @@ primitive that seven independent teams rebuilt is a missing *layer*, not a missi
 
 | Cluster | Who ships it | The shared shape | pi status |
 |---|---|---|---|
-| **Permission policy** | Claude Code (modes + rules), OpenCode (engine + `--auto`), Codex (`approval_policy`), Amp (tool policy plugin), Cursor-ish (Crush deny-hides), Cline (auto-approve) | per-tool + per-argument allow/ask/deny, scoped per agent, one flag for unattended | **missing** — `tool_call` + annotations can express it, nothing ships it |
-| **External-process hooks** | Claude Code (shell/HTTP/MCP handlers), Gemini CLI, Kiro | argv + JSON on stdin + exit code as the decision | **missing** — pi hooks are in-process TS only |
+| **Permission policy** | Claude Code (modes + rules), OpenCode (engine + `--auto`), Codex (`approval_policy`), Amp (tool policy plugin), Crush (deny-hides tools), Cline (auto-approve) | per-tool + per-argument allow/ask/deny, scoped per agent, one flag for unattended | **missing** — `tool_call` + annotations can express it, nothing ships it |
+| **External-process hooks** | Claude Code (33 events), Codex (`hooks.json`, 13 events), Gemini CLI, Kiro | argv + JSON on stdin + exit code as the decision | **missing** — pi hooks are in-process TS only |
 | **Checkpoint / undo** | Claude Code (`/rewind`), OpenCode (`/undo`), Cline (shadow git), Aider (per-edit commit), Gemini (checkpointing) | snapshot the tree per step, restore code and/or conversation | **partial** — fork/rewind moves conversation, not files |
 | **Second-opinion advisor** | Amp (Oracle), Claude Code (advisor), Aider (architect) | consult a stronger/slower model with the transcript before committing | **expressible, unshipped** — `registerTool` + `streamSimple` |
 | **Scoped instruction files** | Cursor (`.mdc` globs), Claude Code (`.claude/rules`), Amp (`globs:` front matter), Zed (compat loader) | instructions attach to the paths being touched, not the session | **partial** — AGENTS.md is cwd-and-ancestors only |
@@ -371,10 +394,14 @@ Read off the installed 1.4.0 tree with source line references (from the capabili
    loading, locking, eviction, cancellation and cleanup — which is why the effort floor for a
    review fan-out is **L**, not M.
 
-Runners-up, narrower but real: no `tool_choice` (cannot force a tool call), no mid-stream
-inject-and-resume (rule injection degrades to abort + retry), and no resolver seam inside the
-built-in `read`/`grep` (an internal-URL scheme needs the whole tool replaced, though
-`createReadTool({ operations })` makes that cheaper than it sounds).
+Runners-up, narrower but real:
+
+- **`bash` is unsandboxed.** Codex is the only agent here that confines the process rather than
+  the call, so a sandboxed-bash tool has no pi-native seat and must wrap an OS mechanism.
+- **No `tool_choice`**, so an extension cannot force a tool call.
+- **No mid-stream inject-and-resume**, so rule injection degrades to abort plus retry.
+- **No resolver seam inside the built-in `read`/`grep`**, so an internal-URL scheme needs the whole
+  tool replaced (though `createReadTool({ operations })` makes that cheaper than it sounds).
 
 **How this changes the ranking.** A row earns `S` only when it is one hook plus one prompt.
 Anything that touches files (undo, checkpoints) or spawns agents (review fan-out, agent teams)
@@ -383,34 +410,65 @@ peer's implementation size.
 
 ## 9. The ranked port list
 
-Ordered by value, then by effort. `Value` is behaviour change per unit of adoption friction;
-`Effort` already accounts for pi's three gaps (§8), so a peer's `S` can become `M` here.
+Sorted by value, then by effort — the order a maintainer would plausibly ship them. `Value` is
+behaviour change per unit of adoption friction; `Effort` already accounts for pi's three gaps
+(§8), so a peer's `S` can become `M` here.
 
 | # | Extension | Primitive stolen from | pi surface | Value | Effort |
 |---|---|---|---|---|---|
-| 1 | **Permission policy engine** | Claude Code modes + rules, OpenCode engine, Codex permission profiles, Amp tool policy, Crush deny-hides, Cline auto-approve | `tool_call` + `annotations` + `exposure: hidden` + command + flag | 5 | M |
-| 2 | **External-process hook bridge** | Claude Code settings hooks, Gemini CLI / Kiro hooks | `tool_call`, `before_agent_start`, `agent_settled`, `session_before_compact` | 5 | M |
-| 3 | **Oracle / advisor tool** | Amp Oracle, Claude Code advisor, Aider architect | `registerTool` + `streamSimple` + read-only loadout | 5 | S |
-| 4 | **Plan/Act mode gate** | Cline, OpenCode plan agent, Codex `/plan` | command + `tool_call` + `setActiveTools` | 5 | S |
-| 5 | **Post-edit feedback loop** | Aider lint/test, OpenCode formatters + diagnostics | `tool_result` + tool + hook | 5 | M |
-| 6 | **Shadow-git checkpoints + undo** | Claude Code `/rewind`, OpenCode `/undo`, Cline checkpoints, Aider per-edit commit | `tool_call` + command + shadow VCS | 5 | M |
-| 7 | **Glob-scoped rules + instruction loader** | Cursor `.mdc`, Claude Code `.claude/rules`, Amp `globs:`, Zed compat | `context` hook | 4 | M |
-| 8 | **Declarative agent/mode profiles** | OpenCode agents, Roo modes, Copilot agents dir, Claude subagent frontmatter, Amp Dial | command + tool + virtual model | 4 | M |
-| 9 | **Review fan-out** | Amp `review` + Checks, Codex `/review` | command + skills + subagents | 4 | L |
-| 10 | **Secret redaction** | Amp | `tool_result` + `before_provider_request` | 4 | M |
+| 1 | **Command rules (prefix allow/prompt/deny)** | Codex `.rules` / execpolicy | `tool_call` over bash input | 5 | S |
+| 2 | **Oracle / advisor tool** | Amp Oracle, Claude Code advisor, Aider architect | `registerTool` + `streamSimple` + read-only loadout | 5 | S |
+| 3 | **Plan/Act mode gate** | Cline, OpenCode plan agent, Codex `/plan` | command + `tool_call` + `setActiveTools` | 5 | S |
+| 4 | **Permission policy engine** | Claude Code modes + rules, OpenCode engine, Codex profiles, Amp policy, Crush deny-hides | `tool_call` + `annotations` + `exposure: hidden` + command + flag | 5 | M |
+| 5 | **External-process hook bridge** | Claude Code hooks (33 events), Codex `hooks.json` (13), Gemini CLI, Kiro | `tool_call`, `before_agent_start`, `agent_settled`, `session_before_compact` | 5 | M |
+| 6 | **Sandboxed bash** | Codex OS sandbox (Seatbelt / bwrap+seccomp) | tool replacing bash | 5 | M |
+| 7 | **Post-edit feedback loop** | Aider lint/test, OpenCode formatters + diagnostics | `tool_result` + tool + hook | 5 | M |
+| 8 | **Shadow-git checkpoints + undo** | Claude Code `/rewind`, OpenCode `/undo`, Cline checkpoints, Aider per-edit commit | `tool_call` + command + shadow VCS | 5 | M |
+| 9 | **Review pass** | Codex `/review`, Amp `review` | command + tool | 5 | M |
+| 10 | **LSP-backed context tool** | Crush | tool | 5 | L |
 | 11 | **Skill re-injection after compaction** | Claude Code | `session_before_compact` | 4 | S |
 | 12 | **`/goal` completion loop** | Claude Code, Codex | `agent_before_settle` | 4 | S |
 | 13 | **Bounded autonomous continuation** | Copilot CLI autopilot | `agent_before_settle` | 4 | S |
-| 14 | **`/import` config migration** | Codex | command | 4 | M |
-| 15 | **Denial queue + `/approve`** | Codex auto-review | `tool_call` + UI | 4 | M |
-| 16 | **Skill-scoped MCP** | Amp | skill hook + `registerMcpServer` | 4 | M |
-| 17 | **Doom-loop guard** | OpenCode | `tool_call` | 3 | S |
-| 18 | **Attention notifications** | OpenCode | `ctx.ui` | 3 | S |
-| 19 | **Commit provenance trailers** | Amp (`Amp-Thread-ID`) | `tool_call` on bash | 3 | S |
-| 20 | **LSP-backed context tool** | Crush | tool | 5 | L |
-| 21 | **Tree-sitter repo map** | Aider | tool + hook | 4 | L |
-| 22 | **Dynamic workflows** | Claude Code | tool | 4 | L |
-| 23 | **Resumable exec (`write_stdin`)** | Codex | tool (blocked by gap 1) | 4 | L |
+| 14 | **MCP tool filtering + per-tool approval** | Codex | hook + `registerMcpServer` | 4 | S |
+| 15 | **`--output-schema` / last-message file** | Codex | flag + tool | 4 | S |
+| 16 | **`/diff` viewer** | Codex | command + UI | 4 | S |
+| 17 | **Glob-scoped rules + instruction loader** | Cursor `.mdc`, Claude Code `.claude/rules`, Amp `globs:`, Zed compat | `context` hook | 4 | M |
+| 18 | **Declarative agent/mode profiles** | OpenCode agents, Roo modes, Copilot agents dir, Claude subagent frontmatter, Amp Dial | command + tool + virtual model | 4 | M |
+| 19 | **Secret redaction (+ shell env policy)** | Amp redaction, Codex `shell_environment_policy` | `tool_result` + `before_provider_request` + `tool_call` | 4 | M |
+| 20 | **Denial queue + `/approve` + auto-review** | Codex | `tool_call` + subagent + UI | 4 | M |
+| 21 | **Skill-scoped MCP** | Amp | skill hook + `registerMcpServer` | 4 | M |
+| 22 | **Review fan-out (Checks)** | Amp Checks | command + skills + subagents | 4 | L |
+| 23 | **Tree-sitter repo map** | Aider | tool + hook | 4 | L |
+| 24 | **Dynamic workflows** | Claude Code | tool | 4 | L |
+| 25 | **Resumable exec (`write_stdin`)** | Codex | tool (blocked by gap 1) | 4 | L |
+| 26 | **Doom-loop guard** | OpenCode | `tool_call` | 3 | S |
+| 27 | **Turn-complete notify + attention** | Codex `notify`, OpenCode attention | `agent_settled` + `ctx.ui` | 3 | S |
+| 28 | **Commit provenance trailers** | Amp | `tool_call` on bash | 3 | S |
+| 29 | **`/import` config migration** | Codex | command (defer until the primitives exist) | 2 | M |
+
+## 10. Build order
+
+**Wave 0 — one afternoon each, no architecture.** #1 command rules, #2 Oracle, #3 Plan/Act,
+#11 skill re-injection, #12 `/goal`, #13 bounded continuation, #27 notify. Each is one hook or
+one tool plus one prompt, and together they close most of the day-to-day gap.
+
+**Wave 1 — the missing layer.** #4 permissions first, because #3, #20, #29 and every
+`acceptEdits`-style mode depend on it; then #5 the hook bridge, which is only worth shipping once
+a policy exists worth expressing in shell; then #6 sandboxed bash, which is the same seam with
+an OS-level backstop.
+
+**Wave 2 — context quality and feedback.** #7 post-edit loop, #9 review pass, #17 glob-scoped
+rules, #19 secret redaction, #14 MCP filtering. These change what the model sees rather than what
+it may do.
+
+**Wave 3 — only with a design first.** #8 checkpoints (needs the shadow-VCS decision from gap
+2), #22 review fan-out (needs a child registry, gap 3), #10/#23 (LSP and tree-sitter, a real
+dependency and a real token budget), #25 resumable exec (needs process supervision, gap 1).
+
+**If only one ships:** the permission policy engine (#4). Seven independent products built one,
+it is the prerequisite for three other rows, and it is the difference between an agent you can
+leave unattended and one you cannot. **If only two ship:** add the hook bridge (#5) — it is what
+lets everyone else's hooks, and every future contributor's bash script, run on pi.
 
 ## 10. Build order
 
@@ -436,9 +494,10 @@ leave unattended and one you cannot.
 
 ## 11. Open questions and limits
 
-- **The Codex slice is thinner than the others.** Its worker did not report before this file
-  was written; the section was produced in the main thread from a targeted fetch of
-  `learn.chatgpt.com` and covers the CLI surface, not the cloud-orchestration details.
+- **Codex was written twice.** The section was first drafted in the main thread from a targeted
+  fetch, then replaced wholesale when the dedicated worker reported (Codex CLI 0.164.0, repo pin
+  `970111f6cb62`, 17 candidates, 25 rejected). The second version is the one that stands; the
+  first draft's claim that `/import` was the sleeper did not survive it (rated 2).
 - **pi may gain permissions natively.** If upstream adds an approval layer, row 1 collapses
   from `M` to `S` and rows 4/14/15 get cheaper with it. Check upstream before starting.
 - **The hook bridge has a packaging question**: one general bridge that reads a `hooks.json`,
@@ -460,6 +519,9 @@ leave unattended and one you cannot.
 
 ## Changelog
 
+- 2026-10-26 — Codex section replaced with the dedicated worker's inventory (CLI 0.164.0, repo
+  pin `970111f6cb62`); ranked list re-sorted to include command rules, the OS sandbox, `/review`,
+  MCP tool filtering and `--output-schema`; TL;DR corrected.
 - 2026-10-26 — created from a six-worker swarm (Amp, Claude Code, Codex, OpenCode, peers, pi
   capability map). Amp, Claude Code, OpenCode, peers and the capability map reported fully;
   Codex was filled in from the main thread. Draft written incrementally; synthesis sections
