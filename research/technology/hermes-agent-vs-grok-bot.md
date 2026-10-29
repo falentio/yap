@@ -131,6 +131,7 @@ Inverting the question is the useful conclusion: Hermes proves the primitive is 
 - [Open-Source Grok Bot Alternatives with First-Class Sandbox VMs](./open-source-grok-bot-alternatives.md) — projects that rebuild the roster shape on your own VM.
 - [Context Compaction Across Coding Agents](./coding-agent-compaction-comparison.md) — how other harnesses implement the working-set boundary Hermes exposes as /compact.
 - [Grok Bot Memory — What Survives a Single Long-Lived Chat](./grok-bot-memory.md) — the memory side of the compaction gap compared here.
+- [Nakama vs Hermes Agent — A Team Platform Against a One-Operator Harness](./nakama-vs-hermes-agent.md) — what happens when someone rebuilds these same primitives behind a login: org tenancy, roles, and a shared skill library, and where Hermes' one-operator model shows its edge.
 
 ## Changelog
 
