@@ -20,7 +20,7 @@ confidence: medium
 
 # Agent 37's Standard Tier — Why It Is So Cheap and What You Trade Away
 
-Asked 2026-10-29, after the five-way comparison
+Asked 2026-10-29, after the eight-way comparison
 ([AI Agent Sandboxes Compared](./ai-agent-sandbox-comparison.md)) put Agent 37's
 standard tier below every other vendor on every workload it costed. This
 file is the mechanism and the bill of goods.
@@ -193,7 +193,7 @@ ceiling, not a reservation.**
 
 ## Related
 
-- [AI Agent Sandboxes Compared — Agent 37, Upstash Box, boat.dev, Cloudflare](./ai-agent-sandbox-comparison.md) — the four-way pricing, including the 4 vCPU / 8 GB shape table these numbers come from.
+- [AI Agent Sandboxes Compared — Agent 37, Upstash Box, boat.dev, Cloudflare, Runtime, Lizard, Instabox, boxd](./ai-agent-sandbox-comparison.md) — the eight-way pricing, including the 4 vCPU / 8 GB shape table these numbers come from.
 - [boat.dev Alternatives — Pay-As-You-Go Sandboxes With No Monthly Minimum](./boat-dev-pay-as-you-go-alternatives.md) — the same shared-tier caveat placed against eight other meters.
 - [Upstash Box vs Cloudflare Sandboxes — Price Comparison](./upstash-box-vs-cloudflare-sandbox.md) — why a consumed-CPU meter behaves the opposite way.
 
