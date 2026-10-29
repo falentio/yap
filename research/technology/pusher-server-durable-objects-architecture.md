@@ -634,6 +634,7 @@ platform's actual cost model.
 
 ## Related
 
+- [Cloudflare Durable Objects and SQLite in Production — Reliability Review](./cloudflare-durable-objects-production-review.md) — the platform-level counterpart: where DOs actually run, what the APAC latency and incident record look like, and why the relay tree and hint choices here are load-bearing.
 - [Pusher Channels WebSocket Protocol: Server Implementation Reference](../reference/pusher-websocket-protocol.md) — the wire contract these decisions satisfy.
 - [Pi Durable on Cloudflare Workers & Durable Objects](./pi-durable-cloudflare-workers-durable-objects.md) — another DO-backed system; shows the same hibernation and SQLite constraints from the agent-harness side.
 

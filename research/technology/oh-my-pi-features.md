@@ -313,6 +313,7 @@ declares 93 command names, including: `add`, `advisor`, `agents`,
 
 ## Related
 
+- [Context Compaction Across Coding Agents](./coding-agent-compaction-comparison.md) — how each agent shortens a full context window, and what T3's handoff does differently
 - [oh-my-pi — Native Rust Core (pi-shell, pi-natives)](./oh-my-pi-native-rust-core.md) — what `pi-shell` is, why the Rust core is large, and a correction of the "~80k" figure
 - [oh-my-pi (omp) — Complete Agent Tool Inventory](../reference/oh-my-pi-tools.md) — every model-callable tool with approval tiers, load modes, and gating settings
 - [Effect v4 @effect/rpc — Deep Dive](./effect-v4-rpc.md)

@@ -4,7 +4,7 @@ category: technology
 tags: [turso, libsql, database, incidents, data-loss, data-leak, reliability, postmortem]
 status: complete
 created: 2026-10-07
-updated: 2026-10-07
+updated: 2026-10-28
 sources:
   - https://blog.val.town/post-mortem-sqlite-data-sharing
   - https://turso.tech/blog/incident-2023-12-04-data-leak-and-loss-in-some-free-tier-databases-7cba5bc7
@@ -16,6 +16,9 @@ sources:
   - https://status.turso.tech/incidents
   - https://turso.tech/blog/turso-is-joining-supabase
   - https://forum.atuin.sh/t/libsql-turso-as-the-backend-db/989
+  - https://status.turso.tech/
+  - https://www.beri.net/article/supabase-turso-acquisition-database-per-agent-sqlite-postgres-pricing-continuity
+  - https://perun.au/insights/turso-production/
 confidence: medium
 ---
 
@@ -27,6 +30,12 @@ first surfaced in `turso-production-reliability.md`.
 
 ## TL;DR
 
+- **Re-checked 2026-10-28: no new data-loss or data-exposure incident has been
+  reported since the January 2025 AWS-beta event.** What did arrive were two
+  availability incidents — 2026-10-16 (Fly regions degraded for roughly a day)
+  and 2026-10-26 (us-east-1 load balancer, 1h 40m) — plus the acquisition on
+  2026-10-02. The data-integrity record is unchanged; the availability record
+  keeps accumulating.
 - **The claim is directionally true, but "data loss" and "publicly acknowledged" are
   both slightly imprecise.** There are **three distinct incidents**, not one:
   - **2023-10-17 → 2023-11-20** — **data exposure** (not loss): a Turso multitenancy bug
@@ -139,9 +148,13 @@ For completeness, the availability incidents are distinct from the data incident
 |------|------|--------|--------|
 | 2026-05-08 | AWS US-EAST-1 outage | Some DBs affected | [status](https://status.turso.tech/incidents) |
 | 2026-05-22 | Turso API unavailable | Resolved same day | status |
-| 2026-08-04 | Elevated 502s; server down → retry cascade → routing overload | ~30 customers | status |
+| 2026-08-04 | Elevated 502s; multitenant server down → retry cascade → routing overload | AWS us-east-1, 48m | status |
+| 2026-10-16 | Degraded for Fly regions | Resolved 2026-10-17 09:31 UTC | status |
+| 2026-10-26 | "A malfunctioning load balancer in us-east-1 caused intermittent timeouts" | AWS us-east-1, 1h 40m | status |
 
-No incidents were reported Sep–Oct 2026.
+No incidents were reported from September 2026 through 2026-10-15. Two arrived after the
+previous revision of this file: **2026-10-16** (Fly regions degraded, resolved the next morning)
+and **2026-10-26** (us-east-1 load balancer, 1h 40m) ([status](https://status.turso.tech/incidents)).
 
 ### 3. The shared root cause — a pattern, not three accidents
 
@@ -193,14 +206,22 @@ GIC. Glauber Costa joins Supabase as Head of Agentic Services. Stated commitment
 - *"Turso Database remains open source and actively developed."*
 - A "graduation path" from SQLite/Turso → Supabase Postgres as workloads grow.
 
-**Caveats relevant to production** (per [Layerbase analysis](https://layerbase.com/blog/supabase-acquires-turso),
-which is a competitor and should be weighed as such, but whose factual claims are sourced):
+**Caveats relevant to production.** Checked again on 2026-10-28 against independent
+reporting ([beri.net, 2026-10-03](https://www.beri.net/article/supabase-turso-acquisition-database-per-agent-sqlite-postgres-pricing-continuity))
+and the [Layerbase analysis](https://layerbase.com/blog/supabase-acquires-turso) (a competitor —
+weigh accordingly, but its factual claims are sourced):
 
-- **No price and no closing date disclosed**; the wording is "is acquiring."
-- **No commitment about future pricing** — "nothing changes" is a statement about today.
-- **libSQL is not mentioned** in the announcement and was reportedly already in maintenance
-  mode, with new work going to the Rust rewrite. The acquisition doesn't reverse that.
+- **No price, no close date, and no SLA disclosed.** As of 2026-10-28 the wording is still
+  "is acquiring", and neither company has committed to a closing date.
+- **No commitment about future pricing.** "Nothing changes" is a statement about today.
+- **No availability guarantee was added by the deal.** This compounds §2 of the parent file:
+  there was no published SLA before, and the acquisition named none.
+- **libSQL is not mentioned** in the announcement and is effectively in maintenance mode, with
+  new work going to the Rust rewrite. The acquisition doesn't reverse that.
 - **Roadmap direction points toward Postgres** — SQLite positioned as a funnel entry point.
+  Independent reporting puts Supabase's own figure at 70% of new databases on its platform
+  being created by AI tooling, which is the commercial reason for the purchase. `[unverified]`
+  — that number is Supabase's and has not been independently checked.
 
 > **Net effect on the production decision:** adds **vendor/roadmap risk** on top of the
 > incident history. Not a reason to panic-migrate, but a reason to keep data portable.
@@ -219,6 +240,17 @@ incident (Dec 2023) and one publicly acknowledged cross-tenant data exposure inc
 2023), both caused by control-plane migrations, plus a credible user-reported data loss event
 in its AWS beta region (Jan 2025) for which no official post-mortem was published."*
 
+### 7. Standing check — what to verify before trusting this file
+
+The incident record is stable enough to summarise, but three things in it decay quickly. Re-check
+these before citing this file:
+
+| Check | Where | Why it decays |
+|---|---|---|
+| Incident list for the last 90 days | [status.turso.tech/incidents](https://status.turso.tech/incidents) | Two new entries appeared in the three weeks between revisions |
+| Whether a post-mortem was published for 2026-08-04 and 2026-10-26 | Turso blog | Neither has one as of 2026-10-28; the 2023-12 incident did |
+| Whether any new loss/exposure incident exists | HN + Turso blog | This file's core claim is the `[unverified]` gap on 2025-01; a new incident would change the verdict, not just the date |
+
 ## Open Questions
 
 - Does an official Turso post-mortem exist for the **Jan 2025** incident? (Not found;
@@ -228,15 +260,28 @@ in its AWS beta region (Jan 2025) for which no official post-mortem was publishe
   and does it cover the migration/backup-ID class of bug? (Claimed for the *new* stack.)
 - Will Delete Protection (Apr 2025) also cover programmatic/migration-induced loss, or only
   user-initiated deletes? `[unverified]`
-- Post-acquisition: what happens to libSQL's maintenance and to Turso Cloud pricing?
+- Post-acquisition: what happens to libSQL's maintenance and to Turso Cloud pricing? **Still open
+  as of 2026-10-28** — no price, close date, or SLA has been published.
+- Does the absence of a post-mortem for 2026-08-04 and 2026-10-26 mark a policy change, or were
+  those judged too small to warrant one? The 2023-12 write-up set an expectation. `[unverified]`
+- Is the 2026-10-16 "Fly regions" degradation the same legacy footprint that produces the
+  sub-99.95% probe numbers in the parent file's §2.2? Inferred, not confirmed by Turso.
 
 ## Related
 
 - [Turso for Production Use — Reliability Assessment](./turso-production-reliability.md) — parent assessment.
+- [Turso Cloud Region Uptime Snapshot — 2026-10-28](../../sources/datasets/turso-cloud-region-uptime-2026-10-28.md) — the availability side of the same record.
 - [Supabase](../product/README.md) — acquirer; a product-level note could live here if this becomes a stack decision.
 
 ## Changelog
 
+- 2026-10-28 — **re-checked.** No new data-loss or exposure incident since 2025-01; the
+  "multiple data loss incidents" verdict in §6 stands unchanged. Added two 2026 availability
+  incidents (2026-10-16 Fly regions, 2026-10-26 us-east-1 load balancer), corrected the
+  2026-08-04 duration from an unattributed "~30 customers" to the status page's **48 minutes**,
+  replaced the second-hand acquisition caveats with the independently reported set, and added a
+  standing-check table because two incidents appeared in the three weeks between revisions.
+  Researched via TinyFish (`mcp__tinyfish__search` / `mcp__tinyfish__fetch_content`).
 - 2026-10-07 — created. Researched via TinyFish (`mcp__tinyfish__search` /
   `mcp__tinyfish__fetch_content`). Verified the "multiple data loss incidents" claim:
   found three incidents (2023-10 exposure, 2023-12 leak+loss, 2025-01 reported loss) and the

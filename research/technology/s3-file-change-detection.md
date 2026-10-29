@@ -91,7 +91,7 @@ Same-post warning: a slow handler on an old version can overwrite a newer result
 
 ## Related
 
-- No prior S3 coverage in this repo (verified 2026-10-09 via repo grep) — no cross-links yet.
+- Adjacent topic: [Syncing File Changes to a Remote SSH Host](./live-file-sync-to-remote-host.md) (2026-10-11) — the local-filesystem side of the same question (watch-and-push vs two-way daemons).
 
 ## Changelog
 

@@ -103,6 +103,7 @@ The transition policy (`apps/server/src/orchestration-v2/ProviderSessionTransiti
 
 ## Related
 
+- [Context Compaction Across Coding Agents](./coding-agent-compaction-comparison.md) — how each agent shortens a full context window, and what T3's handoff does differently
 - [oh-my-pi (omp) — Feature Inventory](./oh-my-pi-features.md) — the Pi driver inside T3's provider list; T3 injects its orchestration MCP into Pi via an RPC extension.
 - [Pi Durable on Cloudflare Workers & Durable Objects](./pi-durable-cloudflare-workers-durable-objects.md) — another event-sourced agent harness in this archive, useful contrast for the command/event/projection model.
 

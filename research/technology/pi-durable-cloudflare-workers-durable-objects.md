@@ -1,10 +1,10 @@
 ---
 title: Pi Durable on Cloudflare Workers & Durable Objects
 category: technology
-tags: [pi, pi-durable, cloudflare, durable-objects, workers, agents-sdk, earendil, agent-harness, durability]
+tags: [pi, pi-durable, cloudflare, durable-objects, workers, agents-sdk, earendil, agent-harness, durability, extensions]
 status: complete
 created: 2026-10-08
-updated: 2026-10-08
+updated: 2026-10-27
 sources:
   - https://earendil.com/posts/pi-durable/
   - https://github.com/earendil-works/pi/tree/main/packages/durable
@@ -18,6 +18,8 @@ sources:
   - https://developers.cloudflare.com/workers/platform/limits/
   - https://news.ycombinator.com/item?id=49925969
   - https://github.com/funtuan/pi-agent-cf
+  - https://github.com/earendil-works/pi/blob/ce950d78f424dcaf9f5d6a03ce80ab141130eb1d/packages/durable/src/harness/types.ts
+  - https://github.com/earendil-works/pi/blob/ce950d78f424dcaf9f5d6a03ce80ab141130eb1d/packages/coding-agent/src/core/extensions/types.ts
 confidence: high
 ---
 
@@ -44,6 +46,10 @@ confidence: high
   10 GB SQLite per object. A model request that streams >15 min can be cut off
   ([DO limits](https://developers.cloudflare.com/durable-objects/platform/limits/),
   [Pi limitations](https://developers.cloudflare.com/agents/harnesses/pi/)).
+- **Its "extensions" are not the coding agent's extensions.** Pi Durable extensions are plain
+  objects installed on a `Registry`; `~/.pi/agent/extensions/*.ts` modules do not load into a
+  durable harness, and the coding agent's own durable mode lists extensions as not implemented
+  (see [§8](#8-extensions-two-different-objects-with-the-same-name)).
 
 ## Context
 
@@ -309,8 +315,88 @@ The thread also frames the category: LangChain Deep Agents, Vercel Eve, OpenAI A
 Anthropic Managed Agents all occupy this durable-agent space, but Pi Durable is unusual in taking
 a **library** posture rather than a batteries-included SDK.
 
+### 8. Extensions: two different objects with the same name
+
+**Verdict: no — Pi Durable and the Pi coding agent cannot share the same extension modules.**
+The word "extension" means two unrelated things in the two packages, and neither package ships an
+adapter for the other's shape.
+
+| Dimension | Pi coding agent | Pi Durable |
+| --- | --- | --- |
+| Unit | A TS module exporting `(pi: ExtensionAPI) => void` | A plain object `{ name, tools?, sections?, hooks?, wraps?, tasks? }` |
+| Where it lives | `~/.pi/agent/extensions/*.ts`, `.pi/extensions/`, `-e ./x.ts` | In host code, installed during the harness factory |
+| Registration | `pi.registerTool()`, `pi.registerCommand()`, `pi.on(event)`, `pi.registerShortcut()` | `registry.install(extension)`; helpers `defineTool` / `defineExtension` / `section` / `hook` / `wrapTool` |
+| Tool shape | `ToolDefinition`: `execute(toolCallId, params, signal, onUpdate, ctx)` → `{ content, details }` | `ToolRegistration`: `execute(args, api, context)` → `{ output }`, plus `replay`, `executionMode`, `prepareArguments`, `outputLimits` |
+| Crash policy | None: in-flight work dies with the process | `replay: "safe"` reruns, `replay: "unsafe"` returns an interrupted result |
+| Human in the loop | `ctx.ui.*` (select, confirm, input, custom TUI), slash commands, shortcuts | None — `ToolExecutionApi` has no UI surface; Pi Durable has no approval step |
+| Prompt shaping | `session_before_compact` / `session_compact`, model + tool events, `pi.appendEntry()` | `sections[]` with a `render()` that runs before each request; `hooks`, `wrapTool`, `wrapSection`, durable custom `tasks` |
+| Loader | `discoverAndLoadExtensions` over the two directories, hot-reloaded by `/reload` | None; the host app installs by hand |
+| Coupling | `@earendil-works/pi-coding-agent` | `pi-ai`, `chord`, `diff`, `typebox` — never the coding agent |
+| Shareable with the other | Skills, prompt prose, tool logic | same |
+
+Evidence from the pinned source (`ce950d7`, pi-durable 1.1.0):
+
+- The registry is Pi Durable's own surface: `createRegistry()` at
+  `packages/durable/src/harness/registry.ts:127`, `Registry.install` at `:84`, the `Extension`
+  bundle type at `packages/durable/src/harness/types.ts:268`, `ToolRegistration` at `:212`
+  ([types.ts](https://github.com/earendil-works/pi/blob/ce950d78f424dcaf9f5d6a03ce80ab141130eb1d/packages/durable/src/harness/types.ts)).
+- `Harness.open(storage, { registry, models, ... }, context)` takes the registry as an option, so
+  "which tools exist" is a value the host chooses — not a global plugin directory
+  (`packages/durable/src/harness/harness.ts:413`, options at `types.ts:453`). Built-in tasks
+  `pi.generation`, `pi.tool`, `pi.compaction` are always in every snapshot and cannot be removed
+  (`registry.ts:9`).
+- `packages/durable` contains **zero** occurrences of `ExtensionAPI`, `registerTool`,
+  `registerCommand`, or `ctx.ui`, and declares **no dependency** on
+  `@earendil-works/pi-coding-agent` (`packages/durable/package.json:96`–`:101`).
+- The two tool shapes genuinely differ: durable `execute(args, api, context)`
+  (`types.ts:212`) vs. coding-agent `ToolDefinition`
+  (`packages/coding-agent/src/core/extensions/types.ts:574`, `ctx.ui` at `:325`).
+
+Cloudflare's own extensions page says the same in one sentence: "An extension is Pi Durable's
+own: a plain object with a name, tools, and sections, installed on the registry you pass to
+`Harness.open()`. `PiHarness` does not wrap them, so every Pi Durable extension feature works"
+([Pi harness — extensions](https://developers.cloudflare.com/agents/harnesses/pi/extensions/)).
+The docs are being careful, not casual: nothing there mentions coding-agent modules.
+
+**The coding agent's own durable mode does not carry extensions either.** The experimental
+backend lists them among what is deliberately absent: "Not here: sessions list and resume
+picker, forks and tree navigation, **extensions**, prompt templates, images, `/login`"
+(`packages/coding-agent/src/experimental/durable/README.md:66`). The single bridge,
+`createCodingRegistry` (`packages/coding-agent/src/experimental/durable/harness-setup.ts:51`),
+builds a durable registry by hand from durable-native artifacts — `registry.install(CodingTools)`
+plus a `createPiPrompt(...)` section — where `CodingTools` is Pi Durable's own
+`defineExtension({ name: "coding-tools" })` over its read/write/edit/bash tool factories
+(`packages/durable/src/tools/index.ts:22`). The same hand-wiring appears in the upstream example
+`packages/durable/test/examples/26-coding-agent.ts:37`.
+
+**What does carry over.** Port an extension by restating a small amount of shape, not by
+importing it:
+
+| Asset | Coding agent | Pi Durable | Notes |
+| --- | --- | --- | --- |
+| Skills | Agent Skills standard from `~/.pi/agent/skills/`, `~/.agents/skills/` | `skills(sources)` from `agents/harness/pi`, installed as extension `agents.skills` | Same content, different container: directories on disk vs. an `agents/skills` manifest |
+| Tool logic | `ToolDefinition.execute` | `ToolRegistration.execute` | Same body; restate schema, return `{ output }`, declare `replay` |
+| Instructions | `AGENTS.md`, prompt templates, system-prompt events | `sections[]` `render()` | Prose survives; the injection mechanism does not |
+| UI, commands, shortcuts | `ctx.ui`, `/command`, keybindings | — | Dropped; `PiHarness` "does not choose the transport", so any UI is yours to re-host |
+
+Two consequences worth stating plainly:
+
+1. **A coding-agent extension is not portable, and that is a design choice.** The durable
+   extension is a *library-level* bundle (tools + prompt sections + hooks + tasks + per-conversation
+   selection + typed document state), while the coding-agent extension is an *in-terminal plugin*
+   with dialogs, widgets, and slash commands. The durable shape is the stricter one; anything
+   reaching for `ctx.ui` has no durable counterpart at all.
+2. **`agents/harness/pi`'s skill bridge is the one true shared unit.** Skills written for the
+   coding agent drop into a Workers agent with the same bodies — with the caveat Cloudflare
+   states: "Skill scripts do not run" on the durable side.
+
 ## Open Questions
 
+- **Is there an out-of-tree adapter from `ExtensionAPI` to a durable registry?** None in the
+  monorepo as of `ce950d7`; unpublished ecosystems were not searched. Probe: grep npm dependents
+  of `@earendil-works/pi-durable` for `registerTool`.
+- **Event parity.** The coding agent's ~20 events vs. durable `hooks`/`wraps` have not been
+  mapped name-by-name; a mapping table would say exactly which behaviors port losslessly.
 - **Does `PiHarness` survive a real deploy mid-turn in practice?** The docs describe 30 s of
   grace then alarm restart; no public incident writeup yet.
 - **What is the actual cost of a busy agent?** Heartbeat alarms keep a DO non-hibernatable while
@@ -324,6 +410,12 @@ a **library** posture rather than a batteries-included SDK.
 
 ## Related
 
+- [Cloudflare Durable Objects and SQLite in Production — Reliability Review](./cloudflare-durable-objects-production-review.md) — placement, APAC latency and incident history for the platform this harness runs on.
+- [Pi Durable vs the Pi Coding Agent](./pi-durable-vs-pi-coding-agent.md) — what durable buys you
+  over the terminal product (crash-surviving turns, multi-client, embeddability) and what it
+  costs, with the decision guide.
+- [Coding-agent features worth porting to pi extensions](./coding-agent-features-to-port-to-pi-extensions.md)
+  — the coding agent's `ExtensionAPI` capability matrix; §8 here is the durable counterpart.
 - [oh-my-pi (omp) — Feature Inventory](./oh-my-pi-features.md) — the `omp` fork of Pi; shares
   the `pi-ai` lineage that Pi Durable builds on.
 - [oh-my-pi — Native Rust Core](./oh-my-pi-native-rust-core.md) — the opposite design choice:
@@ -331,8 +423,21 @@ a **library** posture rather than a batteries-included SDK.
 - [Effect v4 @effect/rpc — Deep Dive](./effect-v4-rpc.md) — a different transport/serialization
   stack for agent-like services (pluggable protocols, typed middleware).
 
+- [Pi Coding Agent on Cloudflare Workers with a Daytona Filesystem](./pi-coding-agent-cloudflare-workers-daytona-fs.md) — what changes when pi host is a Worker: the package cannot be imported there, and the filesystem has to come from a remote sandbox (Daytona) or a DO.
+
+- [Chord — Earendil's Distributed Object Runtime](./chord-distributed-object-runtime.md) — the runtime behind `pi-durable` (delta transactions, watches, the `chord/next` store, SQLite drivers), and not a dependency of the coding agent.
+- [Pi Durable — Production Readiness Assessment](./pi-durable-production-readiness.md) — the release/API churn, migration and rollback risks, what the tests do and do not prove, and the go/no-go gates.
 ## Changelog
 
+- 2026-10-27 — added §8 (extensions: Pi Durable's registry objects vs. the coding agent's
+  `ExtensionAPI` modules, what ports, what does not) and two open questions. Evidence: scout
+  read of `earendil-works/pi` @ `ce950d78f424dcaf9f5d6a03ce80ab141130eb1d` (path:line citations
+  above), the installed `@earendil-works/pi-coding-agent` docs (`docs/extensions.md`,
+  `docs/skills.md`), and Cloudflare's Pi harness extensions page. **Fetch fallback:** that
+  Cloudflare page was read with `curl` because the TinyFish MCP tools are exposed only through
+  code mode (`toolExposure: codemode`) and code mode was not available in this session. Its one
+  load-bearing claim is independently verified against the pinned source, so confidence stays
+  high; re-fetch through TinyFish to satisfy §2 of `AGENTS.md`.
 - 2026-10-08 — created. Source: sparse shallow clone of `earendil-works/pi` @
   `ce950d78f424dcaf9f5d6a03ce80ab141130eb1d` (pi-durable 1.1.0) + Cloudflare Agents/DO docs +
   Earendil announcement + HN thread.
