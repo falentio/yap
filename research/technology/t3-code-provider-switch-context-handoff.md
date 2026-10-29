@@ -4,7 +4,7 @@ category: technology
 tags: [t3-code, coding-agents, orchestration, context-transfer, provider-abstraction]
 status: complete
 created: 2026-10-09
-updated: 2026-10-09
+updated: 2026-10-29
 sources:
   - https://github.com/pingdotgg/t3code
   - https://github.com/pingdotgg/t3code/blob/33806e73555107b8ac8fb18fd15b9dfb87ec6557/docs/orchestration-v2/provider-switching-and-context.md
@@ -103,10 +103,12 @@ The transition policy (`apps/server/src/orchestration-v2/ProviderSessionTransiti
 
 ## Related
 
+- [T3 Code — Server, Desktop, Web, and Mobile Architecture](./t3-code-client-server-architecture.md) — the process, transport, and shell topology those orchestration services run inside
 - [Context Compaction Across Coding Agents](./coding-agent-compaction-comparison.md) — how each agent shortens a full context window, and what T3's handoff does differently
 - [oh-my-pi (omp) — Feature Inventory](./oh-my-pi-features.md) — the Pi driver inside T3's provider list; T3 injects its orchestration MCP into Pi via an RPC extension.
 - [Pi Durable on Cloudflare Workers & Durable Objects](./pi-durable-cloudflare-workers-durable-objects.md) — another event-sourced agent harness in this archive, useful contrast for the command/event/projection model.
 
 ## Changelog
 
+- 2026-10-29 — added a cross-link to the architecture study; no findings changed.
 - 2026-10-09 — created. Source crawl via delegated scout (clone at `~/.pi/source/github.com-pingdotgg-t3code@main`, SHA `33806e73555107b8ac8fb18fd15b9dfb87ec6557`); docs read via TinyFish fetch.
