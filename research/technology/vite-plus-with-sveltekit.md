@@ -205,7 +205,9 @@ which has three consequences:
 
 - Oxfmt does **not** bundle `svelte/compiler`; the project must have `svelte` installed
   or formatting fails ([config reference](https://oxc.rs/docs/guide/usage/formatter/config-file-reference.html)).
-  A SvelteKit app always does.
+  A SvelteKit app always does. With the flag on and no `svelte` package, the failure is unhelpful:
+  `x TypeError: Cannot read properties of undefined (reading 'nodes')`,
+  and the file is left untouched.
 - It needs Node.js, so the standalone `oxfmt` binary from GitHub Releases skips these
   files; the npm package (what Vite+ uses) does not
   ([language support](https://oxc.rs/docs/guide/usage/formatter/language-support.html)).
