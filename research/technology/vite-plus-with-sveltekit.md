@@ -19,6 +19,12 @@ sources:
   - https://svelteconsulting.dev/blog/upgrading-sveltekit-3-vite-plus-node-24
   - https://github.com/ErenayDev/viteplus-svelte
   - https://github.com/davis7dotsh/vite-plus-sv-example
+  - https://viteplus.dev/guide/fmt
+  - https://viteplus.dev/guide/lint
+  - https://oxc.rs/compatibility.html
+  - https://oxc.rs/docs/guide/usage/formatter/config-file-reference.html
+  - https://oxc.rs/docs/guide/usage/formatter/language-support.html
+  - https://oxc.rs/docs/guide/usage/linter
 confidence: high
 ---
 
@@ -127,27 +133,181 @@ over is now also the Kit config file
 On Kit 2 the adapter stays in `svelte.config.js` and only the plugin sits in
 `vite.config.ts`.
 
-### `.svelte` formatting is opt-in, and silent when off
+## Linting and formatting `.svelte` files
 
-Oxfmt does not touch `.svelte` files unless the config says so. With the migrated
-default (`fmt: {}`), `vp check` reported "All 10 files are correctly formatted" while
-a deliberately mangled component kept `let x=1` and a double-space attribute. Adding
-`fmt: { svelte: true }` produced:
+Vite+ splits the work three ways, and only one of the three understands Svelte markup.
+
+| Layer | Command | What it touches in a `.svelte` file | Engine |
+|---|---|---|---|
+| Formatting | `vp fmt`, `vp check` | Whole SFC: `<script>`, markup, attributes, `<style>` CSS | Oxfmt via `prettier-plugin-svelte`, gated by `fmt.svelte` |
+| Linting | `vp lint`, `vp check` | `<script>` blocks only | Oxlint, "no template linting yet" |
+| Type checking | `vp check` | `.ts` / `.tsx` files only, not `<script lang="ts">` | tsgolint on TypeScript 7 |
+| SFC types and a11y | `svelte-check` | Template expressions, a11y, compiler warnings | Svelte's own checker, still yours to run |
+
+Oxlint documents the boundary itself: it handles "framework files (`.vue`, `.svelte`,
+`.astro`) by linting only their `<script>` blocks"
+([linter docs](https://oxc.rs/docs/guide/usage/linter)), and the compatibility matrix
+marks Svelte and SvelteKit "No template linting yet"
+([compatibility](https://oxc.rs/compatibility.html)).
+
+### Formatting is opt-in, and silent when off
+
+Oxfmt's `svelte` option defaults to **disabled**: "Pass `true` or an object to enable
+`.svelte` file formatting, `false` to disable … Default: Disabled"
+([config reference](https://oxc.rs/docs/guide/usage/formatter/config-file-reference.html)).
+Vite+ carries that through its `fmt` block, so `fmt: { svelte: true }` in
+`vite.config.ts` is the switch ([fmt docs](https://viteplus.dev/guide/fmt)).
+
+Off is quiet, which is the trap. On the same project, `vp fmt --check` covered 12 files
+without the flag and 17 with it, reporting "All matched files use the correct format" in
+the first case while never opening a component. A deliberately mangled component came
+through untouched:
 
 ```svelte
+<!-- before -->
 <script lang="ts">
-  let x = 1;
+let count:number=0
 </script>
 
-<h1 class="a">hi {x}</h1>
+<div    class="wrap">
+  {count}
+</div>
+
+<style>
+  .wrap{color:red;padding:0  4px}
+</style>
+
+<!-- after `fmt: { svelte: true }` -->
+<script lang="ts">
+  let count: number = 0;
+</script>
+
+<div class="wrap">
+  {count}
+</div>
+
+<style>
+  .wrap {
+    color: red;
+    padding: 0 4px;
+  }
+</style>
 ```
 
-The same flag appears in a production migration write-up, together with
-`sortTailwindcss` pointing at the app's stylesheet
-([svelteconsulting.dev](https://svelteconsulting.dev/blog/upgrading-sveltekit-3-vite-plus-node-24)).
-Linting is different: `vp lint` does read `.svelte` script blocks — a `debugger` in a
-route produced `src/routes/bad.svelte:3:3: warning eslint(no-debugger)` (an unused
-const in the same block was not flagged).
+That covers script blocks (`<script module>` included), markup attribute spacing and
+self-closing tags (`<img src="logo.png" />`), block indentation, and the `<style>` block,
+which is reformatted as CSS. `.svelte.ts` rune modules are ordinary TypeScript and were
+formatted without any Svelte flag.
+
+`.svelte` is one of Oxfmt's Prettier-backed formats, not a native one
+([language support](https://oxc.rs/docs/guide/usage/formatter/language-support.html)),
+which has three consequences:
+
+- Oxfmt does **not** bundle `svelte/compiler`; the project must have `svelte` installed
+  or formatting fails ([config reference](https://oxc.rs/docs/guide/usage/formatter/config-file-reference.html)).
+  A SvelteKit app always does.
+- It needs Node.js, so the standalone `oxfmt` binary from GitHub Releases skips these
+  files; the npm package (what Vite+ uses) does not
+  ([language support](https://oxc.rs/docs/guide/usage/formatter/language-support.html)).
+- `embeddedLanguageFormatting: "off"` fails on Svelte, "a limitation of
+  `prettier-plugin-svelte`" ([config reference](https://oxc.rs/docs/guide/usage/formatter/config-file-reference.html)).
+
+Options beyond the flag:
+
+| Option | Default | Effect |
+|---|---|---|
+| `svelte` | Disabled | `true`, an object, or `false` per override |
+| `svelte.allowShorthand` | `true` | `{name}` shorthand allowed when name and expression match |
+| `svelte.indentScriptAndStyle` | `true` | Indent content inside `<script>` and `<style>` |
+| `svelte.sortOrder` | `"options-scripts-markup-styles"` | Print order of the component's sections, or `none` |
+| `singleAttributePerLine` | `false` | One attribute per line, Svelte included |
+| `bracketSameLine` | `false` | Closing `>` stays on the last attribute line |
+| `htmlWhitespaceSensitivity` | `"css"` | How whitespace is treated in markup |
+| `singleQuote` | `false` | Applies to markup attributes and scripts |
+
+All from the [config reference](https://oxc.rs/docs/guide/usage/formatter/config-file-reference.html).
+
+### Linting stops at the script tag
+
+Inside a component, Oxlint sees the `<script>` block and nothing else — no markup, no
+`{#each}` / `{#if}` blocks, no attribute expressions, and no `eslint-plugin-svelte`
+equivalents such as `svelte/a11y-*` or `svelte/no-at-html-tags`, since those rules parse
+the template.
+
+Verified on a fixture set:
+
+| Probe | Result |
+|---|---|
+| `debugger` in a component script block | `warning eslint(no-debugger)` — fired |
+| Unused `const` in a component script block | Not reported |
+| Same unused `const` in a `.ts` file | `warning eslint(no-unused-vars)` — fired |
+| `{missingVar}` in markup | Not reported by `vp lint` |
+| `<img src="logo.png">` with no `alt` | Not reported by `vp lint` |
+
+So rule coverage inside an SFC is uneven in practice: the parse-level rules fire, the
+scope-analysis ones do not, and the mapper that extracts the script block is what stands
+between them. Treat `vp lint` on `.svelte` as a partial pass, not as the linter you had.
+
+### Type checking of `<script lang="ts">` is `svelte-check`'s
+
+tsgolint type-checks TypeScript files, so a type error that lives in a component script
+is invisible to `vp check` while the identical error in a `.ts` file is fatal:
+
+```text
+# same wrong assignment, two homes
+src/lib/badtype.ts                → x typescript(TS2322): Type 'string' is not assignable to type 'number'.
+src/routes/probe-type.svelte      → nothing from vp check
+```
+
+`svelte-check` caught both that error and the a11y warning the linter skipped:
+
+```text
+src/routes/probe-a11y.svelte:6:1   Warn: `<img>` element should have an alt attribute (svelte a11y_missing_attribute)
+src/routes/probe-a11y.svelte:10:5  Error: Cannot find name 'missingVar'. (ts)
+src/routes/probe-type.svelte:2:9   Error: Type 'string' is not assignable to type 'number'. (ts)
+```
+
+### `vp check` gates on formatting
+
+`vp check` runs the layers in order and stops at the first one that fails: with a
+formatting violation plus a lint warning present, the run reported only
+`error: Formatting issues found`, and the lint section appeared on the next run after
+`vp check --fix`. CI therefore sees one class of failure per run, and the `--fix` pass
+belongs ahead of the report pass.
+
+### A configuration that covers all four layers
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  fmt: { svelte: true, singleQuote: true },
+  lint: { options: { typeAware: true, typeCheck: true } },
+  staged: { "*": "vp check --fix" },
+  plugins: lazyPlugins(() => [sveltekit({ adapter: adapter() })]),
+});
+```
+
+```json
+{
+  "scripts": {
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:all": "svelte-kit sync && vp check && svelte-check --tsconfig ./tsconfig.json"
+  }
+}
+```
+
+`svelte-kit sync` first: it generates `.svelte-kit/tsconfig.json`, which `svelte-check`
+needs and which the Oxc tooling does not produce.
+
+### What the switch costs
+
+| You had | Under Vite+ | Replacement |
+|---|---|---|
+| Prettier + `prettier-plugin-svelte` | Oxfmt with `fmt.svelte` | Same class of formatting, fewer plugin-specific options |
+| ESLint + `eslint-plugin-svelte` (script rules) | Oxlint, script blocks only | Mostly covered; scope-based rules are not |
+| `eslint-plugin-svelte` template and a11y rules | Nothing | `svelte-check` compiler warnings |
+| `svelte-check` in CI | Unchanged | Still required |
+| Type-aware ESLint rules on `.svelte` | Not available | `svelte-check` |
 
 ## Gotchas
 
@@ -234,5 +394,8 @@ svelte-check --tsconfig ./tsconfig.json   # 0 errors, 0 warnings
 
 ## Changelog
 
+- 2026-10-30: Added the lint and format deep dive: the Oxfmt svelte option is disabled by default,
+  the three-layer split (Oxfmt on the whole SFC, Oxlint on script blocks only, tsgolint on .ts only),
+  measured rule gaps inside SFCs, and the vp check formatting gate.
 - 2026-10-30: First pass. Docs, issue tracker and a production write-up, plus a live
   `sv create` to `vp migrate` to `vp dev` / `vp build` run on vp 1.3.0.
