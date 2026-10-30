@@ -4,7 +4,7 @@ category: technology
 tags: [vite, cli, cac, rolldown, rollup, esbuild, bundler]
 status: complete
 created: 2026-02-14
-updated: 2026-02-14
+updated: 2026-10-30
 sources:
   - https://www.npmjs.com/package/vite
   - https://github.com/vitejs/vite/blob/main/packages/vite/package.json
@@ -105,3 +105,9 @@ it mostly ships template files.
   builds with Rollup.
 - Vite plugins are written against the Rollup plugin API; Rolldown implements it,
   which is why existing plugins keep working.
+
+## See also
+
+- [Vite+ with SvelteKit](./vite-plus-with-sveltekit.md) — `vp` puts its own Vite core
+  (`@voidzero-dev/vite-plus-core`) in place of this `vite` package, which is why the
+  CLI/build split above still describes what runs under `vp build`.
