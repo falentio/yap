@@ -237,7 +237,7 @@ flowchart LR
     Own --> Frames
 ```
 
-The Local VM is a container, not a virtual machine. It runs image `localhost/openmausbot/cua-local-vm:driver-0.37.0-v6` built over `trycua/xfce-cua`, named `openmausbot-computer`, with noVNC inside on port 6901 published to loopback and proxied to the UI by [`server/routes/desktop-viewer.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/server/routes/desktop-viewer.ts). This matches what [the alternatives comparison](./open-source-grok-bot-alternatives.md) found by reading the same code.
+The Local VM is a container, not a virtual machine; [the computer layer file](./openmausbot-computer-layer.md) covers the flag set and the sharing rules. It runs image `localhost/openmausbot/cua-local-vm:driver-0.37.0-v6` built over `trycua/xfce-cua`, named `openmausbot-computer`, with noVNC inside on port 6901 published to loopback and proxied to the UI by [`server/routes/desktop-viewer.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/server/routes/desktop-viewer.ts). This matches what [the alternatives comparison](./open-source-grok-bot-alternatives.md) found by reading the same code.
 
 The host mode is the strangest and the most interesting. The desktop app passes a live Cua Driver stdio connection to its own server child process. Nothing on disk or in the environment supplies it, which means a headless deployment physically cannot offer host control, and the capability is scoped by the app being the parent process rather than by a policy flag.
 
@@ -339,6 +339,7 @@ Workspace boundaries are plain pnpm workspaces, no Turbo or Nx. `pnpm-workspace.
 
 ## Related
 
+- [OpenMausBot's Bot Computer](./openmausbot-computer-layer.md) — the deep dive on the four backends, the container flag set, and shared screen control.
 - [Open-Source Grok Bot Alternatives with First-Class Sandbox VMs](./open-source-grok-bot-alternatives.md) — the sibling comparison this file feeds; its container verdict for the Local VM is confirmed here.
 - [Grok Bot](./grok-bot.md) and [Grok Bot Extensibility](./grok-bot-extensibility.md) — the closed product this rebuilds.
 - [Bot Primitive](./bot-primitive.md) — the abstraction both share.
