@@ -4,7 +4,7 @@ category: technology
 tags: [grok-bot, ai-agents, sandbox, microvm, firecracker, virtualization, open-source, rakazo, openmausbot, kortix, cua, celesto, e2b]
 status: complete
 created: 2026-10-26
-updated: 2026-10-26
+updated: 2026-11-01
 sources:
   - https://docs.x.ai/grok-bot/overview.md
   - https://github.com/elie222/rakazo
@@ -175,6 +175,7 @@ These are the projects where a VM is the primitive, not a provider option.
 ## Related
 
 - [Grok Bot Extensibility — Apps, Skills, Routines, and MCP Connectors](./grok-bot-extensibility.md) — the baseline product this file compares against.
+- [OpenMausBot Architecture](./openmausbot-architecture.md) — the structural read behind this file's OpenMausBot column: the harness, the driver contracts, and why "Local VM" is a container.
 - [Upstash Box vs Cloudflare Sandboxes — Price Comparison](../product/upstash-box-vs-cloudflare-sandbox.md) — hosted sandbox pricing, for the managed alternative.
 - [Features Worth Porting to Pi as Extensions](./coding-agent-features-to-port-to-pi-extensions.md) — what a bot platform needs from its agent runtime.
 - [Grok Bot — What It Is, and How a Bot Works](./grok-bot.md) — the product baseline in more detail: Bot anatomy, shared computer, access, limits.
@@ -182,4 +183,5 @@ These are the projects where a VM is the primitive, not a provider option.
 
 ## Changelog
 
+- 2026-11-01 — linked the architecture deep dive; no claims changed.
 - 2026-10-26 — created. **Fallback recorded:** TinyFish was unavailable from this session. The `tinyfish` MCP server is exposure-hidden behind a `codemode` tool that was not declared, the stored OAuth access token was rejected with `token-invalid`, and the refresh grant returned `invalid_grant`. Discovery therefore used the Exa Search API, and every claim was verified against the project's own repository or documentation through the GitHub API and raw `README`/`LICENSE` fetches. Confidence stays `medium`: all facts are first-party, but a TinyFish re-verification pass is owed per `AGENTS.md` §2.6.
