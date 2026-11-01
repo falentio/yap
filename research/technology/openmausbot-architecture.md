@@ -32,10 +32,10 @@ Read at commit [`cdbf1495d3f1`](https://github.com/milind-soni/OpenMausBot/blob/
 
 - OpenMausBot is a chat app with a Node harness server behind it. The server owns every agent process, every credential, and every transcript. The UI only sends commands and renders events.
 - A bot is not a model. It is a row in `bots.json` plus a provider CLI child process (`claude`, `codex`, `grok`, or any ACP-speaking binary), plus a workspace folder and an approval level.
-- The provider layer is three server-side contracts: `ProviderDriver` for registration, `ProviderInstance` for a configured engine, `ProviderAdapter` for running one turn. There is no shared `Driver` interface in `shared/`; only wire shapes cross to the browser.
+- The provider layer is three server-side contracts: `ProviderDriver` for registration, `ProviderInstance` for a configured engine, `ProviderAdapter` for running one turn. There is no shared `Driver` interface in `shared/`; only wire shapes cross to the browser. The registry ships 25 built-ins: vendor CLIs, plain inference APIs, and 13 engines that speak ACP over stdio.
 - State moves one way. Provider output becomes runtime events, the harness rebroadcasts them over SSE at `/api/events`, and a single React reducer turns each frame into UI state.
 - "The bot's computer" is one Cua Driver stdio MCP contract with three backends: a Boat cloud sandbox, a local container named `openmausbot-computer`, or the host desktop passed in by Electron. Same tool surface, same approval cards, three places the pixels live.
-- Approval is the provider's own permission mode, passed through. [`docs/approval-levels.md`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/docs/approval-levels.md) says it plainly: "OpenMausBot does not judge an action itself: there is no app-side allowlist, classifier, or pattern rule."
+- Approval starts as the provider's own permission mode, passed through. The doc claims "no app-side allowlist, classifier, or pattern rule"; the code disagrees. `autoVerdict` returns a verdict from nine named sources, including two denial rules and the person's own saved command and tool grants.
 
 ## Context
 
@@ -202,19 +202,31 @@ flowchart TB
     Reg -.->|"unknown driverKind"| Shadow["shadow instance, no crash"]
 ```
 
-`BUILT_IN_DRIVERS` in [`server/drivers/builtIn.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/server/drivers/builtIn.ts) is a static array: Claude, Codex, and the ACP drivers (Grok and a generic `customAcp`). `customAcp` takes the whole command in `config.cli` and speaks ACP over stdio, so a versioned build or wrapper binary is a first-class engine without a code change.
+`BUILT_IN_DRIVERS` in [`server/drivers/builtIn.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/server/drivers/builtIn.ts) is a static array of 25, and the shape of that list is the interesting part:
 
-Two strengths here. Unknown engines degrade to a shadow instance instead of crashing the registry, so a bad config entry does not take the server down. And the ACP path is a real protocol boundary rather than argv scraping, which is what lets Grok and third-party engines share one driver body ([`server/drivers/acp/core.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/server/drivers/acp/core.ts), 1,755 lines).
+| Family | Drivers | What it wraps |
+| --- | --- | --- |
+| Vendor agent CLIs | `Claude`, `Codex`, `Grok`, `Antigravity` | a specific product's agent binary |
+| ACP engines | `GrokAgent`, `GeminiAgent`, `KimiAgent`, `DroidAgent`, `CursorAgent`, `OpenCode`, `QwenAgent`, `HermesAgent`, `DeepSeekAgent`, `ClineAgent`, `CopilotAgent`, `CustomAcp`, and `Antigravity` via the same core | any CLI that speaks ACP over stdio |
+| Inference APIs | `OpenAICompat`, `Pi`, `Minimax`, `Mistral`, `Cerebras`, `Groq`, `Greenference`, `Meta`, `MuseCode` | a chat completion endpoint, no agent loop |
+
+Thirteen of the 25 import `createAcpDriver` from [`server/drivers/acp/core.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/server/drivers/acp/core.ts) (1,755 lines). That one body is why the roster is long: each new agent CLI is a config file, not a driver. `customAcp` goes further and takes the whole command in `config.cli`, so a versioned build or wrapper binary is a first-class engine with no code change at all.
+
+The same registry serving both agent CLIs and plain chat models is a deliberate simplification. It means "switch this bot's brain" is one code path whether the brain runs a shell or just answers.
+
+Two strengths. Unknown engines degrade to a shadow instance instead of crashing the registry, so a bad config entry does not take the server down. And the ACP path is a real protocol boundary rather than argv scraping.
 
 The weakness is size. `server/` is roughly 518,000 lines of TypeScript including tests, and [`server/index.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/server/index.ts) alone is 15,793. Turn orchestration, SSE, room fan-out, the runtime subscription, and dozens of internal routes live in that one file. It is a working design that will make a contribution expensive for anyone who has not memorized it.
 
 ### 6. The computer, one contract three backends
 
-This is the part worth copying. Every bot computer is reached through **Cua Driver over stdio MCP** ([`server/contracts.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/server/contracts.ts)). A turn mounts that connection as an MCP server and the agent sees ordinary tools. What sits behind the connection is a deployment decision, not an agent decision.
+This is the part worth copying. A turn's `integrations` bag carries nine stdio MCP bridges plus an open map of user-supplied servers ([`server/contracts.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/server/contracts.ts)): Composio apps, the bot computer, the peer-agent proxy, a phone over USB debugging, browser tabs, DuckDB data tools, a CRM, and a paired device. The computer is entry `localComputer`, a stdio connection to a computer MCP server whose helper binary is `cua-driver` at version 0.37.0. The agent sees ordinary MCP tools; what sits behind the connection is a deployment decision, not an agent decision.
+
+One detail carries real weight: `integrations.localComputer.scope` is set to `"local-computer"` only for the host desktop, so host-only approval rules can never match a cloud or container computer.
 
 ```mermaid
 flowchart LR
-    Turn["Turn mounts<br/>integrations.localComputer"] --> Cua{"Cua Driver<br/>stdio MCP"}
+    Turn["Turn mounts<br/>integrations.localComputer"] --> Cua{"Cua Driver, stdio MCP<br/>helper cua-driver 0.37.0"}
     Cua --> Cloud["Cloud Linux desktop<br/>server/boat.ts<br/>Boat sandbox, VNC then WebRTC"]
     Cua --> Box["Local VM<br/>server/container-computer.ts<br/>Docker, Podman, or Apple container"]
     Cua --> Own["Host desktop<br/>server/desktop-computer.ts<br/>connection passed by Electron"]
@@ -241,18 +253,18 @@ flowchart TD
     Which -->|"Custom, Codex only"| Toml["reapply Codex config.toml<br/>approval and sandbox settings"]
     Card --> Human["POST /api/threads/:id/respond"]
     Human --> Verdict["adapter.respondToRequest"]
-    Auto --> Floor{"approvalHeldAtFloor?"}
+    Auto --> Floor{"autoVerdict source"}
     Full --> Floor
-    Floor -->|"yes"| Card
-    Floor -->|"no"| Verdict
+    Floor -->|"safety-floor or outbound-guard denies"| Deny["auto-denied, rule named in the decision log"]
+    Floor -->|"otherwise"| Verdict
     Toml --> Verdict
 ```
 
 The levels are `ask`, `edits`, `auto`, `full`, `custom` in [`shared/approval-mode.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/shared/approval-mode.ts), resolved per turn by `approvalModeFor`. Each maps to the provider's own permission mode, so the card a user sees is a request the provider genuinely left open, not a re-implementation of one.
 
-Two rules keep this from being a rubber stamp:
+Two things keep Full access and Approve-for-me from being a rubber stamp:
 
-1. **`approvalHeldAtFloor`** in [`server/auto-approve.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/server/auto-approve.ts) refuses to auto-answer a class of destructive actions even under Full access.
+1. **`autoVerdict`** in [`server/auto-approve.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/server/auto-approve.ts) answers every native request before a card is shown, and returns one of nine `AutoVerdictSource` values. Two of them deny regardless of mode: `safety-floor` and `outbound-guard`. [`server/safety-floor-gate.test.ts`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/server/safety-floor-gate.test.ts) shows the rule ids (`delete-root`, `format-disk`) and the audit row they leave: `decision: "auto-denied", source: "safety-floor", rule`.
 2. **Full access and Custom can only be set from a packaged desktop app**, where the choice crosses a private process channel rather than the bot-accessible HTTP API. They are hidden in development, standalone web, and remote pages ([`docs/approval-levels.md`](https://github.com/milind-soni/OpenMausBot/blob/cdbf1495d3f1b6951bfa702d20663a11a3bf67f4/docs/approval-levels.md)).
 
 The delegation rule is the one that surprises people. A Chief of Staff bot with Full access passes that level to work it delegates, so a teammate's own Ask setting does not stop the work:
@@ -314,6 +326,7 @@ Workspace boundaries are plain pnpm workspaces, no Turbo or Nx. `pnpm-workspace.
 - **Loopback is the authentication.** Reaching port 8799 is equivalent to owning the machine's bot shells. Anything that fronts it must forward the real `Host`, set `X-Forwarded-Proto`, and refuse to buffer the event stream.
 - **Headless loses three things.** The built-in browser panel, the skill recorder and dictation, and host desktop control all need the desktop app. Cloud and container computers work on a server because the bot's computer runs server-side anyway.
 - **In-flight turns die on restart, routines do not.** `docs/self-hosting.md` tells you to update between runs for that reason.
+- **The docs understate the app's own rules.** `docs/approval-levels.md` says there is no app-side allowlist. `autoVerdict` has `command-allowlist`, `tool-allowlist`, `own-files`, `web-search`, `outbound-guard`, and `safety-floor`. The reconciliation is that these are person-authored grants and denials, not a classifier, but read the doc alone and you will believe the model decides.
 - **Full access propagates down a delegation tree** when the delegator is a Chief of Staff. It is the most surprising permission rule in the product and it exists because per-card approvals were the whole cost of running a team.
 - **Mock engines are hidden, not removed.** Full and Custom only enable through the packaged desktop, so a web deployment cannot escalate a bot above Auto by design.
 - **The monolith is the contribution cost.** A change to turn sequencing, SSE framing, or room fan-out lands in a 15,793-line file. Read `server/index.test.ts` (14,188 lines) before assuming a behavior is untested.
@@ -334,3 +347,4 @@ Workspace boundaries are plain pnpm workspaces, no Turbo or Nx. `pnpm-workspace.
 ## Changelog
 
 - 2026-11-01 — created from a read of `main` at `cdbf1495d3f1`, plus the project's `docs/self-hosting.md` and `docs/approval-levels.md`.
+- 2026-11-01 — corrected after a verification pass against the checkout: the registry has 25 built-in drivers, not 3; `approvalHeldAtFloor` does not exist (the deny rules are `autoVerdict` sources); and the "no app-side allowlist" line in the docs is contradicted by the saved command and tool grants.
