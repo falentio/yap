@@ -236,6 +236,26 @@ The repo does have a real sandbox for exactly this, [`server/bot-box/`](https://
 
 The comment in [`server/bot-box/detect.ts`](https://github.com/milind-soni/OpenMausBot/blob/b1e0ba941e5c0aa5ef4c7543edbab04b98253e80/server/bot-box/detect.ts) states the intent: a machine that refuses user namespaces "reports off with its reason rather than running turns unboxed by surprise".
 
+### Five surfaces, and only four of them are tools
+
+The tempting model is "one shell on the host, one shell in the VM". It is wrong in two ways. The host side is not a tool the harness provides, it is the engine itself, and there are five places a conversation can do computer work, not two.
+
+`select_computer` in [`server/drivers/agents-catalog.ts`](https://github.com/milind-soni/OpenMausBot/blob/b1e0ba941e5c0aa5ef4c7543edbab04b98253e80/server/drivers/agents-catalog.ts) takes `surface: auto | cloud | vm | local | browser`. The description is explicit about what happens next: "A pending result means end this turn immediately: OpenMausBot updates the conversation selector and resumes the original request with that computer's real tools. Do not use the old tools after requesting a switch."
+
+| Surface | Tools the bot holds there | Runs on |
+| --- | --- | --- |
+| `local` | Cua Driver under `mcp__computer__*`, host rules | your real desktop, no isolation |
+| `vm` | Cua Driver under `mcp__computer__*` plus `vm_exec` | the container |
+| `cloud` | the fixed ten-tool set, including `exec` | Boat sandbox or your own VPS |
+| `browser` | the built-in browser's read and click tools | Electron's Chromium, per-bot partition |
+| `auto` | whichever configured place fits | decided at switch time |
+
+Two asymmetries matter.
+
+**The host shell never goes away.** Whatever surface is selected, the provider CLI is a child of the harness, so its own Bash, Read, Write, and Grep stay on the host. Selecting `vm` adds a GUI catalog and an exec tool inside the container; it does not remove the unconfined shell outside it. Only a tool-scope deny list in the bot's Access settings can remove a tool, and that is a separate mechanism from the surface.
+
+**`vm_exec` is not a computer tool.** It ships in the harness's own `agents` MCP server, the same catalog of 40 tools that holds `coordinate_bots`, `create_bot`, `start_thread`, and `attach_file`. The computer's GUI tools come from a different server, `mcp__computer__*`, which is Cua Driver's own catalog passed through. So the VM is reachable through two unrelated doors: one owned by the harness (a shell), one owned by the desktop driver (a screen).
+
 ## What survives a rebuild
 
 ```mermaid
@@ -270,6 +290,7 @@ The image itself is built, not pulled from a registry you do not control. `prepa
 - `maxInstances` bounds per-bot desktops and pool seats, but the default of two for every deployment is a product choice, not a measured limit. No benchmark of simultaneous desktops on one host appears in the repo.
 
 ## Related
+- [Grok Bot, OpenMausBot, and OpenBot — Three Answers to the Same Primitive](./grok-bot-openmausbot-openbot-compared.md) — the three-way comparison: shared account computer vs your machine and engine choice vs a per-bot container behind a CEL gateway.
 
 - [OpenMausBot Architecture](./openmausbot-architecture.md) — the whole-system map this file drills into.
 - [Open-Source Grok Bot Alternatives with First-Class Sandbox VMs](./open-source-grok-bot-alternatives.md) — the comparison that first established the Local VM is a container.
@@ -279,4 +300,5 @@ The image itself is built, not pulled from a registry you do not control. `prepa
 ## Changelog
 
 - 2026-11-01 — created from a read of `main` at `ac08cf72a70f`, plus the project's `docs/computer-use-integration.md` and `docs/linux-desktop.md`.
+- 2026-11-02 — added the five computer surfaces and why `vm_exec` lives in the agents catalog, after the two-tools framing came up.
 - 2026-11-02 — added where the agent process actually runs, after the question came up: the CLI is on the host, `vm_exec` is the only path into the container's shell, and `bot-box` is the sandbox that is off by default.
