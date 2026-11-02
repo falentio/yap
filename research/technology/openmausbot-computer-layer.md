@@ -4,7 +4,7 @@ category: technology
 tags: [openmausbot, computer-use, container-isolation, cua-driver, novnc, mcp, agent-sandbox, grok-bot]
 status: complete
 created: 2026-11-01
-updated: 2026-11-01
+updated: 2026-11-02
 sources:
   - https://github.com/milind-soni/OpenMausBot
   - https://github.com/milind-soni/OpenMausBot/blob/ac08cf72a70f4d334ea39e9044ecc514c0c1056c/server/container-computer.ts
@@ -27,7 +27,7 @@ confidence: high
 
 # OpenMausBot's bot computer, layer by layer
 
-Read at `ac08cf72a70f` on 2026-11-01. `main` moved between this read and [the architecture file](./openmausbot-architecture.md) (which pins `cdbf1495d3f1`); the numbers below are the later commit, and `server/index.ts` measured 15,793 lines at both.
+Read across three commits while `main` moved under the read: `cdbf1495d3f1` ([the architecture file](./openmausbot-architecture.md)), `ac08cf72a70f` (the body below), and `b1e0ba941e5c` (the agent-placement section, 2026-11-02). `server/index.ts` measured 15,793 lines at all three.
 
 ## TL;DR
 
@@ -36,6 +36,7 @@ Read at `ac08cf72a70f` on 2026-11-01. `main` moved between this read and [the ar
 - Isolation is a flag set, not a runtime: `--cap-drop ALL` plus three caps, no privileged mode, no host namespaces, default seccomp, one bind mount, one loopback port.
 - Exactly one host folder is mounted, so a rebuild keeps files, browser sign-ins, and user-installed desktop apps, but not system packages.
 - A person can take the screen at any time. The bot's next action is refused rather than queued, because an action that lands late could double a click the engine already retried.
+- The agent does not run in the VM. The provider CLI is a child of the harness on the host, so a bot has two shells in two places: its engine's own Bash on the host, and `vm_exec` inside the container.
 
 ## Context
 
@@ -180,6 +181,61 @@ The refusal strings are written for the model, not for a person. [\`server/contr
 
 The live screen is a thin proxy. `/api/desktop-viewer/local/{shared|bot-<sha256>|pool-N}[/websockify]` returns only the VNC password on a plain GET and upgrades to a fixed `127.0.0.1:<managed port>/websockify` on a WebSocket request, never a browser-supplied URL. Auth is three layers: admin scope and same-origin at the HTTP boundary, a live session, and an RFB password generated per container run and carried in `VNC_PW`. The upstream handshake forwards no cookie, bearer token, query, or forwarded header, only that password. The phone join route is stricter still: it demands per-bot mode and a valid `controlLeaseId`, refuses shared and pool desktops with 409, and rechecks the lease every five seconds.
 
+## Where the agent actually runs
+
+It does not run in the VM. The container holds a desktop; the model process is a child of the harness, on the host, as the user who started the server.
+
+```mermaid
+flowchart TB
+    subgraph Host["Host machine, as the harness user"]
+        H["harness server 127.0.0.1:8799"]
+        CLI["claude, codex, or grok CLI<br/>cwd = task-workspaces/bot/thread"]
+        Native["the engine's own Bash tool<br/>no OS sandbox on a desktop install"]
+        Bridge["MCP bridge, docker exec"]
+    end
+    subgraph Box["Local VM container"]
+        Driver["cua-driver"] --> Desk["Xfce desktop"]
+        VExec["vm_exec<br/>as user cua, /home/cua/workspace"]
+    end
+    H --> CLI
+    CLI --> Native
+    H --> Bridge
+    Bridge --> Driver
+    CLI -->|"vm_exec, through the agents proxy"| VExec
+    Native -.->|"a different host folder, not mounted"| Box
+```
+
+The spawn is ordinary. [`server/drivers/claude.ts`](https://github.com/milind-soni/OpenMausBot/blob/b1e0ba941e5c0aa5ef4c7543edbab04b98253e80/server/drivers/claude.ts) calls `spawnCli` with the turn's `cwd`, and [`server/procs.ts`](https://github.com/milind-soni/OpenMausBot/blob/b1e0ba941e5c0aa5ef4c7543edbab04b98253e80/server/procs.ts) reaches Node's `spawn` unless the bot box wraps the command. Codex starts its own app-server the same way. The container is not in that path at all; the only way into it is the MCP bridge from the previous section.
+
+| | The engine's own shell | `vm_exec` |
+| --- | --- | --- |
+| Runs on | the host, as the harness user | the container, as user `cua` |
+| Working directory | `DATA_DIR/task-workspaces/<bot>/<thread>` | `/home/cua/workspace` |
+| Confinement | none on a desktop install; bot box on a Cloud home | cap-drop ALL, one mount, 4 GB, 2 CPU, 4096 pids |
+| Files it can reach | the whole host filesystem | the one bind mount |
+| Timeout | the engine's own | 60 s default, 300 max |
+
+The two folders are siblings, not the same folder. [`server/workspace.ts`](https://github.com/milind-soni/OpenMausBot/blob/b1e0ba941e5c0aa5ef4c7543edbab04b98253e80/server/workspace.ts) creates `DATA_DIR/task-workspaces/<bot>/<thread>` for the turn and comments, plainly: "Directory organization, not a shell sandbox." The container mounts `DATA_DIR/vm-home` or `vm-homes/<hash>`. Nothing mounts the task workspace, so a file the agent writes with its own tools is invisible to the desktop until something moves it, and `attach_file` is what moves it.
+
+`vm_exec` is a tool, not a transport. It is declared in [`server/drivers/agents-catalog.ts`](https://github.com/milind-soni/OpenMausBot/blob/b1e0ba941e5c0aa5ef4c7543edbab04b98253e80/server/drivers/agents-catalog.ts) with a description that reads like advice from someone who has watched bots work badly: "Run a shell command inside your own Local VM (as the desktop user, starting in /home/cua/workspace) ... Do not type commands into a terminal window and read screenshots: that is slow and unreliable." It is advertised only when a Local VM desktop exists, and a Cloud home removes it from the catalog outright, because a local desktop is not a place on a cloud install.
+
+The confinement question is where this design gets uncomfortable. On a normal desktop or Local VM install, the engine's shell has no OS sandbox: no `seatbelt`/`sandbox-exec`, no bubblewrap, no Landlock, no seccomp around the spawn. So the Local VM limits the GUI, not the agent. A bot that runs `rm -rf ~` through its own Bash tool hits the host, not a disposable container.
+
+The repo does have a real sandbox for exactly this, [`server/bot-box/`](https://github.com/milind-soni/OpenMausBot/blob/b1e0ba941e5c0aa5ef4c7543edbab04b98253e80/server/bot-box/box.ts), and it is conditional by design:
+
+| Aspect | Behavior |
+| --- | --- |
+| Mechanism | bubblewrap with user, PID, network, IPC, and UTS namespaces, plus a seccomp filter |
+| Kinds | `bwrap`, `gvisor`, `user`, or `off` |
+| Default | on for `OMB_CLOUD_ROLE=home` or `team`, off everywhere else |
+| Never | on a non-Linux host, or without a working unprivileged bubblewrap |
+| Override | `OMB_BOT_BOX=1` forces it, `0` disables it |
+| Off reasons | `switched-off`, `not-linux`, `no-bwrap`, `userns-refused`, `not-cloud`, shown in Admin rather than run quietly |
+| What stays visible | the turn folder, the bot folder, SOUL.md, selected sockets; `DATA_DIR` becomes an empty private folder |
+| Extra | an egress gate and a harness gate for `/api/internal/` routes, plus a credential broker and filtered env |
+
+The comment in [`server/bot-box/detect.ts`](https://github.com/milind-soni/OpenMausBot/blob/b1e0ba941e5c0aa5ef4c7543edbab04b98253e80/server/bot-box/detect.ts) states the intent: a machine that refuses user namespaces "reports off with its reason rather than running turns unboxed by surprise".
+
 ## What survives a rebuild
 
 ```mermaid
@@ -198,6 +254,8 @@ The image itself is built, not pulled from a registry you do not control. `prepa
 ## Gotchas
 
 - **The driver refuses unsafe input before any approval card exists.** Inside the container there is no `/dev/uinput`, so background X11 key injection is unavailable and the system prompt requires `delivery_mode: "foreground"` for keys, typing, scroll, and pixel clicks. Pixel clicks are also refused on a window this session has not read, so `get_window_state` has to come first. Accessibility targets are preferred over coordinates.
+- **The Local VM is not a security boundary for the agent.** It contains the desktop and the `cua` user's files. The engine's shell runs on the host unless the bot box is on, and the bot box is off by default outside a Cloud home.
+- **A bot can be in two places at once.** A file it writes in its task workspace never appears on the desktop; a file it writes with `vm_exec` needs `attach_file` to reach the chat.
 - **The mount is the only durable thing.** Anything a user installs outside `/home/cua/workspace` disappears at the next rebuild, which happens on every layer bump.
 - **Host control cannot work headless.** Electron passes a live Cua connection to its server child and nothing on disk or in the environment supplies one, so a Docker or systemd deployment silently has no host desktop.
 - **The TCC grant follows the spawning process, not the binary.** [`docs/computer-use-integration.md`](https://github.com/milind-soni/OpenMausBot/blob/ac08cf72a70f4d334ea39e9044ecc514c0c1056c/docs/computer-use-integration.md) is explicit: spawn `cua-driver` from the Electron main process, never from the server or a gateway daemon, or macOS attributes the permission to the gateway and `check_permissions` cannot detect the misattribution.
@@ -221,3 +279,4 @@ The image itself is built, not pulled from a registry you do not control. `prepa
 ## Changelog
 
 - 2026-11-01 — created from a read of `main` at `ac08cf72a70f`, plus the project's `docs/computer-use-integration.md` and `docs/linux-desktop.md`.
+- 2026-11-02 — added where the agent process actually runs, after the question came up: the CLI is on the host, `vm_exec` is the only path into the container's shell, and `bot-box` is the sandbox that is off by default.
