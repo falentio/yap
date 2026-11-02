@@ -254,6 +254,12 @@ Two asymmetries matter.
 
 **The host shell never goes away.** Whatever surface is selected, the provider CLI is a child of the harness, so its own Bash, Read, Write, and Grep stay on the host. Selecting `vm` adds a GUI catalog and an exec tool inside the container; it does not remove the unconfined shell outside it. Only a tool-scope deny list in the bot's Access settings can remove a tool, and that is a separate mechanism from the surface.
 
+The system prompt says both halves out loud. [`server/system-prompt.ts`](https://github.com/milind-soni/OpenMausBot/blob/b1e0ba941e5c0aa5ef4c7543edbab04b98253e80/server/system-prompt.ts) tells a bot on a Local VM desktop:
+
+> You have your own isolated Cua sandbox: a Linux desktop in a container reserved for this bot. Only /home/cua/workspace is durable; save downloads, repositories, working files, and browser profiles there because everything else inside the VM is disposable. No other host folder is mounted. Run every command with vm_exec, which returns the exit code and the output as text; do not type commands into a terminal window and read screenshots. Create files there with vm_exec too (a shell heredoc or a script it runs); **your host file tools cannot reach the VM**.
+
+That last clause is the app admitting the shape: there are host file tools, there are VM tools, and they are different machines. The bot is told to use both.
+
 **`vm_exec` is not a computer tool.** It ships in the harness's own `agents` MCP server, the same catalog of 40 tools that holds `coordinate_bots`, `create_bot`, `start_thread`, and `attach_file`. The computer's GUI tools come from a different server, `mcp__computer__*`, which is Cua Driver's own catalog passed through. So the VM is reachable through two unrelated doors: one owned by the harness (a shell), one owned by the desktop driver (a screen).
 
 ## What survives a rebuild
@@ -300,5 +306,6 @@ The image itself is built, not pulled from a registry you do not control. `prepa
 ## Changelog
 
 - 2026-11-01 — created from a read of `main` at `ac08cf72a70f`, plus the project's `docs/computer-use-integration.md` and `docs/linux-desktop.md`.
+- 2026-11-02 — added the system-prompt text that tells a bot it has host file tools and a separate VM, which settles whether both machines are reachable at once.
 - 2026-11-02 — added the five computer surfaces and why `vm_exec` lives in the agents catalog, after the two-tools framing came up.
 - 2026-11-02 — added where the agent process actually runs, after the question came up: the CLI is on the host, `vm_exec` is the only path into the container's shell, and `bot-box` is the sandbox that is off by default.
