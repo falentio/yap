@@ -81,7 +81,7 @@ So the dependency is one wheel and one binary, not a framework. That is why Open
 ## Gotchas
 
 - **"Cua sandbox" is ambiguous in this product.** The sentence in the system prompt names a driver's vendor, not the isolation mechanism. The isolation comes from OpenMausBot's container flags.
-- **Two licences sit next to each other.** The driver you redistribute is MIT. Spaces and Bench are FSL, so copying their code into a competitor is the thing FSL forbids, and each release ages into MIT after two years.
+- **Two licences sit next to each other.** The driver you redistribute is MIT. Spaces and Bench are FSL, so copying their code into a competitor is the thing FSL forbids, and each release ages into MIT after two years. [The FSL note](./functional-source-license.md) has the clause text and the comparison against BSL and friends.
 - **The driver is not a screen server.** It injects input and reads state. OpenMausBot's own noVNC and frame polling provide the pixels.
 - **Background delivery has platform limits.** Cua markets input that does not move your pointer "when the app and platform support it". The bot's prompt therefore still requires foreground delivery for keys and pixel clicks inside the container.
 
