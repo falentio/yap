@@ -81,7 +81,7 @@ The patent grant matters commercially. It puts FSL in the same family as Apache 
 | Patent grant | yes, with retaliation | none stated | yes | none stated |
 | OSI-approved open source | no | no | no | no |
 
-The FSL FAQ is direct about why it exists. BSL's "Additional Use Grant is a serious flaw, because it creates too much variability. Each BSL implementation is essentially a new license. Also, four years is too long." On the other side, it rejects open core for restricting by feature, and AGPL for exposing users to copyleft risk.
+The FSL FAQ is direct about why it exists. BSL's "time-based approach is great, but the Additional Use Grant is a serious flaw, because it creates too much variability. Each BSL implementation is essentially a new license. Also, four years is too long." On the other side, it rejects open core for restricting by feature, and AGPL for exposing users to copyleft risk.
 
 ## When it shows up in this repo
 
