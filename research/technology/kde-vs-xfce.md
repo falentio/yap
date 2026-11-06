@@ -132,18 +132,37 @@ KDE runs a security page with a reporting address, a published policy, four name
 
 Xfce is harder to audit and mostly benign by construction. Tried against OpenCVE's vendor index, the entire Xfce record is five CVEs, the newest from 2022 (an argument-injection flaw in `xfce4-mime-helper`, CVSS 9.8) ([OpenCVE](https://app.opencve.io/cve/?product=xfce&vendor=xfce)). "Five CVEs in 29 years" is not five-times-safer firmware: it reflects a smaller attack surface (fewer daemons, no KRunner-style extensible launcher, no package-install surface) *and* a thinner disclosure habit — no Xfce advisory page surfaced in this research, so fixes ship as changelog lines inside distro packages.
 
-### Where Xfce genuinely wins
+### When to choose Plasma
 
-- **Machines with no GPU.** A VPS session, a 1–2 GB container, a 15-year-old laptop: software rendering turns Plasma's compositor cost into real latency, and Xfce's own compositor is optional ([HostingB2B](https://hostingb2b.com/blog/compute/vps-hosting/kde-vs-gnome-vs-xfce-the-ultimate-linux-desktop-comparison/)).
-- **X11 holdouts with a horizon.** Plasma's X11 session dies in January 2027; Xfce's roadmap commits to keeping X11 "for the foreseeable future" with a separate compositor for Wayland precisely so the two never collide ([schedule](https://community.kde.org/Schedules/Plasma_6), [roadmap](https://wiki.xfce.org/releng/wayland_roadmap)).
-- **Drift-free workstations.** Two-year majors mean a shell that does not re-arrange itself; useful on a kiosk, a lab, or a remote box you visit twice a year.
-- **Distro breadth.** Xfce is the default of 123 active distributions against Plasma's 107, so it is the desktop you can find on the distro you already run ([eylenburg](https://eylenburg.github.io/de_comparison.htm)).
+Reach for Plasma when the machine is modern enough that the compositor is free, or when one of its shipped capabilities is the actual requirement. The four cases resolve cleanly:
 
-### Where Plasma genuinely wins
+- **Wayland as a requirement, not a curiosity.** HDR, VRR, per-app fractional scaling, display colour profiles, and screencopy permission prompts are Plasma features with no Xfce equivalent at any configuration depth ([eylenburg](https://eylenburg.github.io/de_comparison.htm)). On the Xfce side they are roadmap items inside an unshipped compositor ([roadmap](https://wiki.xfce.org/releng/wayland_roadmap)).
+- **A headless or remote-driven box.** RDP with unattended mode, client-matched screen resize, and a bidirectional clipboard is KDE's own deliverable, hardened in 6.8 specifically to close the X11 gap ([Phoronix](https://www.phoronix.com/news/Plasma-68-Better-Remote-Desktop)). Xfce has no remote-desktop story of its own — it inherits whatever the third-party compositor does.
+- **A screen-reader user, or a user who needs on-screen input.** A dwell clicker arrived in 6.8 and an integrated on-screen keyboard in 6.6 ([6.8](https://kde.org/announcements/plasma/6/6.8.0/), [Kubuntu notes](https://kubuntu.org/news/kubuntu-26-04-release-notes/)). An Orca user on Xfce in 2026 spent an hour and could never get window or page contents spoken ([report](https://www.reddit.com/r/xfce/comments/1p15xs8/just_spent_the_last_hour_trying_to_use_orca/)).
+- **Anything needing a support horizon.** Plasma 6.6 is an LTS taking fixes through roughly February 2029 under a commercial partnership ([schedule](https://community.kde.org/Schedules/Plasma_6), [Register](https://www.theregister.com/software/2026/08/18/sponsor-gives-kde-plasma-66-the-lts-treatment/5288531)). Xfce has no LTS of its own; your horizon is the distro's.
 
-- **Wayland features that are not replannable onto X11** — HDR, VRR, per-app fractional scaling, colour profiles, screencopy permission prompts ([eylenburg](https://eylenburg.github.io/de_comparison.htm)).
-- **Remote desktop.** RDP with client-matched resize and unattended mode is a KDE deliverable, and Plasma 6.8 hardened it; on Xfce it is whatever Labwc or Wayfire happen to do ([Phoronix](https://www.phoronix.com/news/Plasma-68-Better-Remote-Desktop)).
-- **Accessibility.** Plasma shipped a dwell clicker in 6.8 and an on-screen keyboard in 6.6, and KDE claims parity with its own X11 session ([6.8](https://kde.org/announcements/plasma/6/6.8.0/), [Kubuntu notes](https://kubuntu.org/news/kubuntu-26-04-release-notes/)). Xfce's own components are fine for a keyboard-only user, but an Orca user in 2026 could tab to buttons and never hear window or page contents, across an hour of trying ([report](https://www.reddit.com/r/xfce/comments/1p15xs8/just_spent_the_last_hour_trying_to_use_orca/)).
+Then accept the bill. A four-month feature cadence means the shell will move under you: 6.8 shipped enough regressions that the project's own weekly post leads with having fixed them ([This Week in Plasma](https://blogs.kde.org/2026/10/31/this-week-in-plasma-an-avalanche-of-performance-improvements-and-bug-fixes/)), and Kubuntu 26.04 warns upgraders about broken panel layouts and themes across the 6.6 jump ([release notes](https://kubuntu.org/news/kubuntu-26-04-release-notes/)). Stay on the distro's LTS series rather than chasing point releases, and pin if you are deploying at scale.
+
+### When to choose Xfce
+
+Reach for Xfce when the machine is the constraint, when X11 is the requirement, or when nothing about the box should change between visits:
+
+- **No GPU, or under ~2 GB RAM.** A VPS session with no /dev/dri, a 1–2 GB container, a 15-year-old laptop. Plasma's compositor falls back to software rendering there and dragging a window can hold a full core; Xfce's compositor is optional ([HostingB2B](https://hostingb2b.com/blog/compute/vps-hosting/kde-vs-gnome-vs-xfce-the-ultimate-linux-desktop-comparison/)).
+- **X11 past 2027-01-19.** Plasma retires its X11 session then ([schedule](https://community.kde.org/Schedules/Plasma_6)). Xfce keeps X11 "for the foreseeable future" and puts Wayland in a separate compositor precisely so the X11 path never moves ([roadmap](https://wiki.xfce.org/releng/wayland_roadmap)).
+- **A kiosk, a lab, or a box you SSH into twice a year.** Two-year majors mean the panel is where you left it ([Wikipedia](https://en.wikipedia.org/wiki/Xfce)).
+- **A distro you already run.** Xfce is the default of 123 active distributions against Plasma's 107, so it is the one already on the image ([eylenburg](https://eylenburg.github.io/de_comparison.htm)).
+
+Then accept the other bill: the Wayland session is "advanced users only" with workspaces, systray icons, keyboard and brightness keys, and window screenshots missing or broken ([Xfce tour](https://www.xfce.org/about/tour420/)), the next major has no date and 4.20 is already 23 months old ([download page](https://www.xfce.org/download/)), and there is no advisory feed to watch — you track your distro's tracker instead ([kde.org security page](https://kde.org/info/security/) as the contrast).
+
+### When either works, and what actually decides it
+
+On a modern laptop with 16 GB and a GPU, the performance rows stop discriminating: 2,700 vs 2,695 single-core and 846 vs 848 fps are the same number ([thread](https://forum.endeavouros.com/t/linux-des-resource-usage-compared/70060)). What remains is preference with a maintenance cost attached, so pick on these instead:
+
+- **Do you want the shell to be editable down to the widget?** Plasma lets you re-arrange every element and toggle a global menu; Xfce gives four panel sides and a theme ([eylenburg](https://eylenburg.github.io/de_comparison.htm)). Editing is also what breaks across Plasma upgrades.
+- **Do you want a matched app suite or your own apps?** Plasma ships Dolphin, Konsole, Kate, Spectacle and Discover; Xfce ships Thunar and Mousepad and leaves the rest to you ([LinuxForDevices](https://www.linuxfordevices.com/tutorials/linux/kde-vs-xfce)).
+- **How much shell churn do you tolerate?** Three feature releases a year with polish arriving after, or two years of the same panel ([schedule](https://community.kde.org/Schedules/Plasma_6), [Wikipedia](https://en.wikipedia.org/wiki/Xfce)).
+
+Both are in every major distribution's repositories, co-installable, and neither locks you in — a session switch costs minutes ([LinuxForDevices](https://www.linuxfordevices.com/tutorials/linux/kde-vs-xfce)). If the answer is still unclear, install both and pick in a week.
 
 ### Pick by what fails first
 
@@ -183,3 +202,4 @@ Xfce is harder to audit and mostly benign by construction. Tried against OpenCVE
 ## Changelog
 
 - 2026-11-06 — created. Researched via TinyFish search and fetch; all measurements are second-hand and cited, with the conflicting runs kept rather than averaged.
+- 2026-11-06 — added the three decision sections (when Plasma, when Xfce, when either) and folded the two "genuinely wins" lists into them so the trade is stated as a bill rather than a score.
