@@ -235,6 +235,7 @@ than being cut outright.
 
 - [Windows-Like Linux Desktops](./windows-like-linux-desktops.md) — the same Plasma pick where the
   goal is a familiar layout instead of a plain one; Q4OS appears in both.
+- [KDE Plasma vs Xfce](./kde-vs-xfce.md) — what Plasma costs against the lightweight default before committing a machine to it.
 - [Running a Linux Desktop Inside gVisor](./linux-desktop-in-gvisor.md) — which of these desktops
   still renders when there is no GPU and no display connector.
 - [Computer-Use Stacks for Agents Under gVisor](./computer-use-stack-for-agents-on-gvisor.md) —
