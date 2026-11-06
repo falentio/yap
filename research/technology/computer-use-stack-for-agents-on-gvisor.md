@@ -4,7 +4,7 @@ category: technology
 tags: [gvisor, computer-use, agents, sandbox, desktop, x11, wayland, vnc, rdp, playwright, chromium, xvfb, cua, at-spi, accessibility, qemu]
 status: complete
 created: 2026-11-01
-updated: 2026-11-02
+updated: 2026-11-06
 sources:
   - https://gvisor.dev/docs/user_guide/compatibility/
   - https://github.com/google/gvisor/blob/aa767e4c43d0/images/systemd-user/gnome-mcp/desktop_mcp.py
@@ -231,6 +231,7 @@ argued from feature lists.
   x86_64 only [unverified].
 
 ## Related
+- [Browser-Viewable VNC on gVisor](./vnc-server-on-gvisor-with-browser-client.md) — which VNC server survives with no /dev/dri and how noVNC + websockify put it in a browser tab.
 
 - [Running a Linux Desktop Inside gVisor](./linux-desktop-in-gvisor.md) — the
   display stack itself: CPU rendering, the GPU wall, and what the desktop image
@@ -239,15 +240,18 @@ argued from feature lists.
   recurring wall, and what that says about the boundary.
 - [AI Agent Sandboxes Compared](../product/ai-agent-sandbox-comparison.md) — the
   same tiers priced as products.
+- [Windows-Like Linux Desktops](./windows-like-linux-desktops.md) — which desktops reproduce the Windows shell in native code, and what the clone distros cost
 - [Cua — What It Is and What "Cua Sandbox" Means](./cua-computer-use-stack.md) — the component list, the licence split, and the one wheel OpenMausBot pins.
 - [Open-Source Grok Bot Alternatives](./open-source-grok-bot-alternatives.md) —
   Cua and the other agent-desktop SDKs in context.
 
 ## Changelog
 
+- 2026-11-06 — cross-linked the Windows-like desktop research from Related.
 - 2026-11-02 — added whether Cua itself runs there: the `--runtime gvisor` flag, what the driver keeps and loses, and why OpenMausBot's Local VM cannot be pointed at it.
 - 2026-11-01 — created from the pinned `gnome-mcp` image
   (`desktop_mcp.py`, `entrypoint.sh`, `AGENTS.md`, `Dockerfile`) and
   `systemd-debian-gnome` image at SHA `aa767e4c43d0` (read 2026-11-01), the
   gVisor compatibility guide, the systemd-in-gVisor and MAGI posts, the Cua
   sandbox docs and image catalog, and the KasmVNC, wdotool and wtype pages.
+- 2026-11-28 — cross-linked the browser-viewable VNC file.
