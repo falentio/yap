@@ -187,8 +187,8 @@ This is the part that decides the answer for real workloads.
 ## Related
 
 - [Browser-Viewable VNC on gVisor](./vnc-server-on-gvisor-with-browser-client.md) — which VNC server survives with no /dev/dri and how noVNC + websockify put it in a browser tab.
-
 - [Computer-Use Stacks for Agents Under gVisor](./computer-use-stack-for-agents-on-gvisor.md) — which control paths an agent can actually drive in a gVisor guest, and what each is for.
+- [Debian-Derived Distros With KDE Plasma](./debian-based-kde-distributions.md) — where Plasma comes from on Debian and which Debian branch each derivative pins.
 - [Windows-Like Linux Desktops](./windows-like-linux-desktops.md) — which desktops reproduce the Windows shell in native code, and what the clone distros cost (a person arriving from Windows)
 - [gVisor vs a Hypervisor](./gvisor-vs-hypervisor.md) — the isolation model and
   the compatibility gaps (io_uring, ext4 mounts, in-sandbox cgroup limits,

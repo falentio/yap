@@ -150,7 +150,7 @@ The one structural point under all of these: **measure how much of the Windows l
 
 ## Related
 
-- [Debian-Derived Distros With KDE Plasma](./debian-based-kde-distributions.md) — where Plasma comes from on Debian and which Debian branch each derivative pins.
+- [Debian-Derived Distros With KDE Plasma](./debian-based-kde-distributions.md) — the same Plasma pick where the deliverable is a plain desktop instead of a Windows-shaped one, and Q4OS again as a Debian `stable` option.
 - [Running a Linux Desktop Inside gVisor](./linux-desktop-in-gvisor.md) — the same desktop question where there is no GPU and no display connector: why headless Wayland GNOME over RDP works and Xorg, xrdp and VNC do not.
 - [Computer-Use Stacks for Agents Under gVisor](./computer-use-stack-for-agents-on-gvisor.md) — the control plane over a desktop, per combination.
 - [Browser-Viewable VNC on gVisor](./vnc-server-on-gvisor-with-browser-client.md) — why a remotely served Windows-like desktop has to be X11.
