@@ -179,6 +179,7 @@ Compared across the columns; dimensions down the rows.
 
 ## Related
 
+- [New PC Roguelikes and Roguelites Ported to Android](./pc-roguelike-android-ports.md) — 2026's PC-to-Android roguelite port wave, with the store prices and touch-adaptation verdicts.
 - None yet in this repo (first board-game entry under research/product/).
 
 ## Changelog

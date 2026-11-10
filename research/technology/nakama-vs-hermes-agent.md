@@ -4,7 +4,7 @@ category: technology
 tags: [nakama, hermes-agent, ai-agents, comparison, multi-tenant, self-hosted, teams, agent-platform]
 status: complete
 created: 2026-10-29
-updated: 2026-10-29
+updated: 2026-11-02
 sources:
   - https://github.com/ahmadrosid/nakama
   - https://ahmadrosid.github.io/nakama/
@@ -35,7 +35,7 @@ Pick by who else uses it. One person gets Hermes. Several people who need separa
 
 Asked on 2026-10-29 as "compare github.com/ahmadrosid/nakama with hermes". Hermes means [Hermes Agent by Nous Research](https://github.com/NousResearch/hermes-agent), the same reference as [Hermes Agent vs Grok Bot](./hermes-agent-vs-grok-bot.md), not the Hermes model family.
 
-Nakama here is ahmadrosid's AI workspace, "an AI agent platform for your team". It shares a name with the Heroic Labs game server and has nothing to do with it. Both projects are MIT.
+Nakama here is ahmadrosid's AI workspace, "an AI agent platform for your team". It shares a name with the Heroic Labs game server and has nothing to do with it. Both projects are MIT. The license and the closed hosting business are covered in [Nakama — How Much Is Actually Open Source](./nakama-open-source-scope.md).
 
 Both also put a named agent, not a chat, at the center, which is the pattern [The Bot as a Primitive](./bot-primitive.md) describes.
 
@@ -172,3 +172,4 @@ On the Hermes side, merging #27182 makes per-user preferences possible while lea
 ## Changelog
 
 - 2026-10-29: created from Nakama's README, docs site, `ARCHITECTURE.md`, `THREAT_MODEL.md`, `package.json`, and a source read at `956b875`, plus Hermes's README, profiles doc, issue #27182, and the GitHub API for both repos.
+- 2026-11-02: linked [Nakama — How Much Is Actually Open Source](./nakama-open-source-scope.md); no claim here changed.

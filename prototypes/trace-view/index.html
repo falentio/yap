@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trace view — POST /checkout</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #131922;
+    --surface-2: #182029;
+    --line: rgba(255,255,255,.07);
+    --line-strong: rgba(255,255,255,.13);
+    --text: #e6edf3;
+    --muted: #8b98a9;
+    --muted-2: #5d6b7d;
+    --accent: #4c9aff;
+    --critical: #f0b429;
+    --error: #f2555a;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    --gateway: #4c9aff;
+    --auth: #a78bfa;
+    --cart: #2dd4bf;
+    --inventory: #f59e0b;
+    --payment: #fb7185;
+    --notify: #34d399;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 13px/1.45 var(--sans);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── header ───────────────────────────────────────────── */
+  header { padding: 18px 22px 14px; border-bottom: 1px solid var(--line); }
+  .crumbs {
+    display: flex; align-items: center; gap: 8px;
+    color: var(--muted-2); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; font-weight: 600;
+  }
+  .crumbs .sep { opacity: .5; }
+  h1 {
+    margin: 6px 0 0; font-size: 17px; font-weight: 600; letter-spacing: -.01em;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  h1 code {
+    font: 500 11.5px/1 var(--mono); color: var(--muted);
+    background: var(--surface-2); border: 1px solid var(--line);
+    padding: 4px 7px; border-radius: 5px;
+  }
+  .status-chip {
+    font: 600 10.5px/1 var(--sans); letter-spacing: .06em; text-transform: uppercase;
+    color: #ffd7d8; background: rgba(242,85,90,.14);
+    border: 1px solid rgba(242,85,90,.35); padding: 4px 7px; border-radius: 5px;
+  }
+  .stats { display: flex; gap: 26px; margin-top: 14px; flex-wrap: wrap; }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat .k { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted-2); font-weight: 600; }
+  .stat .v { font: 500 15px/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+  .stat .v small { font-size: 11px; color: var(--muted); }
+  .stat.slow .v { color: var(--critical); }
+  .stat.err .v { color: var(--error); }
+
+  /* ── toolbar ──────────────────────────────────────────── */
+  .toolbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 22px; border-bottom: 1px solid var(--line);
+    background: linear-gradient(var(--surface), rgba(19,25,34,0));
+  }
+  .search {
+    display: flex; align-items: center; gap: 7px; flex: 0 1 260px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 7px; padding: 0 9px; height: 30px;
+    transition: border-color .15s;
+  }
+  .search:focus-within { border-color: rgba(76,154,255,.55); }
+  .search svg { flex: none; color: var(--muted-2); }
+  .search input {
+    all: unset; flex: 1; font: 12.5px var(--sans); color: var(--text); min-width: 0;
+  }
+  .search input::placeholder { color: var(--muted-2); }
+  .toggle {
+    display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px;
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--muted);
+    border-radius: 7px; font: 500 12px var(--sans); cursor: pointer;
+    transition: color .15s, border-color .15s, background .15s;
+    user-select: none;
+  }
+  .toggle:hover { color: var(--text); border-color: var(--line-strong); }
+  .toggle[aria-pressed="true"] { color: var(--text); background: rgba(76,154,255,.13); border-color: rgba(76,154,255,.45); }
+  .toggle .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .85; }
+  .toggle.crit[aria-pressed="true"] { background: rgba(240,180,41,.13); border-color: rgba(240,180,41,.45); color: var(--critical); }
+  .spacer { flex: 1; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11.5px; }
+  .legend i { width: 8px; height: 8px; border-radius: 2px; background: currentColor; }
+
+  /* ── layout ───────────────────────────────────────────── */
+  main { flex: 1; display: flex; min-height: 0; }
+  .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+
+  .axis-band {
+    display: flex; align-items: stretch; height: 34px;
+    border-bottom: 1px solid var(--line); background: var(--surface);
+    position: relative; flex: none;
+  }
+  .axis-band .label-col {
+    flex: none; width: var(--label-w, 416px);
+    display: flex; align-items: center; padding-left: 22px;
+    font: 600 10.5px/1 var(--sans); letter-spacing: .07em; text-transform: uppercase;
+    color: var(--muted-2); border-right: 1px solid var(--line);
+  }
+  .axis { position: relative; flex: 1; }
+  .tick { position: absolute; top: 0; bottom: 0; }
+  .tick span {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    font: 500 10.5px var(--mono); color: var(--muted-2); white-space: nowrap;
+  }
+  .tick::after {
+    content: ""; position: absolute; left: 0; top: 24px; bottom: 0; width: 1px;
+    background: var(--line);
+  }
+
+  .rows { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; }
+  .rows::-webkit-scrollbar { width: 10px; }
+  .rows::-webkit-scrollbar-thumb { background: #26303c; border-radius: 6px; border: 3px solid var(--bg); }
+
+  .row {
+    display: flex; height: 30px; align-items: stretch; cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,.028);
+    position: relative;
+  }
+  .row:hover { background: rgba(255,255,255,.028); }
+  .row.sel { background: rgba(76,154,255,.10); }
+  .row.sel::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: var(--accent);
+  }
+  .row.dim { opacity: .28; }
+
+  .label-cell {
+    flex: none; width: var(--label-w, 416px); display: flex; align-items: center;
+    gap: 6px; padding-right: 8px; border-right: 1px solid var(--line);
+    overflow: hidden; white-space: nowrap;
+  }
+  .twist {
+    flex: none; width: 12px; text-align: center; color: var(--muted-2);
+    font-size: 9px; transition: transform .12s; user-select: none;
+  }
+  .twist.closed { transform: rotate(-90deg); }
+  .twist.hidden { visibility: hidden; }
+  .svc-dot { flex: none; width: 7px; height: 7px; border-radius: 2px; background: var(--c, var(--accent)); }
+  .row-name { font-size: 12.25px; overflow: hidden; text-overflow: ellipsis; }
+  .row-kind {
+    font: 600 9px/1 var(--sans); letter-spacing: .05em; text-transform: uppercase;
+    color: var(--muted-2); border: 1px solid var(--line); border-radius: 3px;
+    padding: 2px 4px; flex: none;
+  }
+  .row-kind.err { color: var(--error); border-color: rgba(242,85,90,.4); }
+  .grow { flex: 1; min-width: 4px; }
+  .row-dur {
+    font: 500 11.5px var(--mono); font-variant-numeric: tabular-nums;
+    color: var(--muted); flex: none;
+  }
+  .row-dur.hot { color: var(--critical); }
+  .row-dur.bad { color: var(--error); }
+
+  .track { position: relative; flex: 1; min-width: 0; }
+  .grid-line { position: absolute; top: 0; bottom: -1px; width: 1px; background: rgba(255,255,255,.045); pointer-events: none; }
+
+  .bar {
+    position: absolute; top: 8px; height: 14px; border-radius: 4px;
+    background: var(--c, var(--accent));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+    min-width: 3px;
+  }
+  .bar::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.25);
+  }
+  .bar.crit { box-shadow: 0 0 0 1.5px var(--critical), inset 0 1px 0 rgba(255,255,255,.2); }
+  .bar-label {
+    position: absolute; top: 8px; height: 14px; display: flex; align-items: center;
+    font: 500 10.5px var(--mono); font-variant-numeric: tabular-nums;
+    color: var(--muted); white-space: nowrap; pointer-events: none;
+  }
+  .bar-label.inside { color: rgba(0,0,0,.72); }
+  .bar-label.crit { color: var(--critical); }
+
+  .empty {
+    padding: 40px 22px; color: var(--muted-2); font-size: 12.5px; display: none;
+  }
+
+  /* ── detail panel ─────────────────────────────────────── */
+  aside {
+    flex: none; width: 348px; border-left: 1px solid var(--line);
+    background: var(--surface); display: flex; flex-direction: column;
+    min-height: 0;
+  }
+  .aside-head {
+    padding: 14px 16px 12px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .aside-head .svc-dot { margin-top: 5px; width: 9px; height: 9px; }
+  .aside-head h2 {
+    margin: 0; font: 600 13px/1.35 var(--mono); word-break: break-word;
+  }
+  .aside-head .sub { color: var(--muted); font-size: 11.5px; margin-top: 3px; }
+  .aside-body { overflow-y: auto; padding: 0 0 24px; flex: 1; }
+  .aside-body::-webkit-scrollbar { width: 9px; }
+  .aside-body::-webkit-scrollbar-thumb { background: #26303c; border-radius: 6px; border: 3px solid var(--surface); }
+  .group { padding: 14px 16px 4px; }
+  .group h3 {
+    margin: 0 0 9px; font: 600 10px/1 var(--sans); letter-spacing: .09em;
+    text-transform: uppercase; color: var(--muted-2);
+  }
+  .kv { display: grid; grid-template-columns: 92px 1fr; gap: 6px 10px; }
+  .kv dt { color: var(--muted); font-size: 11.5px; }
+  .kv dd { margin: 0; font: 500 11.5px/1.4 var(--mono); font-variant-numeric: tabular-nums; word-break: break-word; }
+  .split { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 4px 0 8px; gap: 2px; }
+  .split i { display: block; height: 100%; }
+  .split-legend { display: flex; gap: 14px; font-size: 11px; color: var(--muted); }
+  .split-legend b { font: 600 11px var(--mono); color: var(--text); }
+
+  .events { list-style: none; margin: 0; padding: 0; }
+  .events li {
+    display: grid; grid-template-columns: 46px 1fr; gap: 8px;
+    padding: 6px 0; border-top: 1px solid rgba(255,255,255,.045); font-size: 11.5px;
+  }
+  .events li:first-child { border-top: 0; }
+  .events time { font: 500 11px var(--mono); color: var(--muted-2); }
+  .events .ename { color: var(--text); }
+  .events .edesc { color: var(--muted); font-size: 11px; }
+
+  .hint {
+    margin: 16px; padding: 11px 12px; border: 1px dashed var(--line-strong);
+    border-radius: 8px; color: var(--muted-2); font-size: 11.5px; line-height: 1.5;
+  }
+  kbd {
+    font: 500 10px var(--mono); background: var(--surface-2); border: 1px solid var(--line-strong);
+    border-bottom-width: 2px; border-radius: 4px; padding: 1px 4px; color: var(--muted);
+  }
+  /* narrow: stack the detail panel under the waterfall instead of covering it */
+  @media (max-width: 1040px) {
+    main { flex-direction: column; }
+    .pane { min-height: 0; }
+    aside { width: 100%; max-height: 42%; border-left: 0; border-top: 1px solid var(--line); }
+    .aside-body { padding-bottom: 12px; }
+  }
+  @media (max-width: 820px) {
+    :root { --label-w: 300px; }
+    header { padding: 14px 16px 12px; }
+    .toolbar, .key { padding-left: 16px; padding-right: 16px; }
+    .legend { display: none; }
+  }
+
+  .key {
+    flex: none; display: flex; gap: 20px; flex-wrap: wrap; align-items: center;
+    padding: 8px 22px; border-top: 1px solid var(--line); background: var(--surface);
+    font-size: 11.5px; color: var(--muted-2);
+  }
+  .key span { display: inline-flex; align-items: center; gap: 7px; }
+  .key i { flex: none; }
+  .key .k-bar { width: 16px; height: 7px; border-radius: 2px; background: var(--cart); }
+  .key .k-ind { width: 12px; height: 8px; border-left: 2px solid var(--muted-2); border-bottom: 2px solid var(--muted-2); }
+  .key .k-crit { width: 16px; height: 7px; border-radius: 2px; background: var(--payment); box-shadow: 0 0 0 1.5px var(--critical); }
+  .key .k-err { width: 22px; height: 12px; border: 1px solid rgba(242,85,90,.45); border-radius: 3px; color: var(--error); font: 600 8px/12px var(--sans); text-align: center; font-style: normal; }
+</style>
+</head>
+<body>
+<header>
+  <div class="crumbs">
+    <span>traces</span><span class="sep">/</span><span>checkout-api</span>
+    <span class="sep">/</span><span>2026-02-14 09:41:07 UTC</span>
+  </div>
+  <h1>
+    POST /checkout
+    <code>4bf92f3577b34da6a3ce929d0e0e4736</code>
+    <span class="status-chip">error</span>
+  </h1>
+  <div class="stats">
+    <div class="stat"><span class="k">Duration</span><span class="v">1.25 <small>s</small></span></div>
+    <div class="stat"><span class="k">Spans</span><span class="v">19</span></div>
+    <div class="stat"><span class="k">Services</span><span class="v">6</span></div>
+    <div class="stat"><span class="k">Depth</span><span class="v">4</span></div>
+    <div class="stat slow"><span class="k">Critical path</span><span class="v">1.15 <small>s</small></span></div>
+    <div class="stat err"><span class="k">Errors</span><span class="v">1</span></div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <label class="search">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>
+    <input id="q" type="search" placeholder="Filter spans, services, attributes…" />
+  </label>
+  <button class="toggle" id="errOnly" aria-pressed="false"><span class="dot"></span>Errors only</button>
+  <button class="toggle crit" id="critPath" aria-pressed="true"><span class="dot"></span>Critical path</button>
+  <div class="spacer"></div>
+  <div class="legend">
+    <span style="color:var(--gateway)"><i></i>api-gateway</span>
+    <span style="color:var(--auth)"><i></i>auth</span>
+    <span style="color:var(--cart)"><i></i>cart</span>
+    <span style="color:var(--inventory)"><i></i>inventory</span>
+    <span style="color:var(--payment)"><i></i>payment</span>
+    <span style="color:var(--notify)"><i></i>notify</span>
+  </div>
+</div>
+
+<main>
+  <section class="pane">
+    <div class="axis-band">
+      <div class="label-col">Span · Service</div>
+      <div class="axis" id="axis"></div>
+    </div>
+    <div class="rows" id="rows"></div>
+    <div class="empty" id="empty">No spans match this filter.</div>
+    <div class="key">
+      <span><i class="k-bar"></i>one bar per span — x is start time, width is duration</span>
+      <span><i class="k-ind"></i>indent is call depth, parent contains child</span>
+      <span><i class="k-crit"></i>gold outline marks the critical path</span>
+      <span><i class="k-err">ERR</i>span returned an error</span>
+    </div>
+  </section>
+  <aside id="aside"></aside>
+</main>
+
+<script>
+const TOTAL = 1247;
+const SERVICES = {
+  "api-gateway": "var(--gateway)",
+  "auth-service": "var(--auth)",
+  "cart-service": "var(--cart)",
+  "inventory-service": "var(--inventory)",
+  "payment-service": "var(--payment)",
+  "notification-service": "var(--notify)",
+};
+
+// start / dur in milliseconds relative to the root span.
+const SPANS = [
+  { id: "s1",  parent: null, name: "POST /checkout", service: "api-gateway", kind: "SERVER", start: 0, dur: 1247,
+    attrs: { "http.method": "POST", "http.route": "/checkout", "http.status_code": "502", "net.peer.ip": "10.4.19.7", "user.id": "u_8812" },
+    events: [
+      { t: 0,    name: "request.received", desc: "content-length=612" },
+      { t: 1152, name: "error",            desc: "downstream 502 from payment-service" },
+      { t: 1245, name: "response.sent",    desc: "502 in 1247ms" },
+    ] },
+
+  { id: "s2", parent: "s1", name: "middleware.authenticate", service: "auth-service", kind: "INTERNAL", start: 3, dur: 36,
+    attrs: { "auth.scheme": "bearer", "auth.cache": "redis:login:u_8812" },
+    events: [{ t: 4, name: "cache.hit", desc: "session resolved in 1.1ms" }] },
+  { id: "s3", parent: "s2", name: "jwt.verify", service: "auth-service", kind: "INTERNAL", start: 5, dur: 9,
+    attrs: { alg: "RS256", kid: "2026-01" }, events: [] },
+  { id: "s4", parent: "s2", name: "SELECT users", service: "postgres", kind: "CLIENT", start: 16, dur: 17,
+    attrs: { "db.system": "postgresql", "db.statement": "SELECT * FROM users WHERE id = $1", "db.rows": "1" },
+    events: [{ t: 22, name: "query.done", desc: "1 row, 17ms" }] },
+
+  { id: "s5", parent: "s1", name: "POST /cart/validate", service: "cart-service", kind: "INTERNAL", start: 40, dur: 172,
+    attrs: { "rpc.system": "grpc", "cart.id": "cart_1902", "cart.items": "4" },
+    events: [{ t: 43, name: "cache.miss", desc: "cart:1902 not in redis" }] },
+  { id: "s6", parent: "s5", name: "GET cart:1902", service: "redis", kind: "CLIENT", start: 42, dur: 9,
+    attrs: { "db.system": "redis", "db.operation": "GET" }, events: [] },
+  { id: "s7", parent: "s5", name: "SELECT cart_items", service: "postgres", kind: "CLIENT", start: 53, dur: 75,
+    attrs: { "db.system": "postgresql", "db.rows": "4", "db.statement": "SELECT ... FROM cart_items WHERE cart_id = $1" },
+    events: [{ t: 128, name: "query.done", desc: "4 rows" }] },
+  { id: "s8", parent: "s5", name: "POST /inventory/reserve", service: "inventory-service", kind: "INTERNAL", start: 130, dur: 75,
+    attrs: { "rpc.method": "ReserveStock", "sku.count": "4" }, events: [] },
+  { id: "s9", parent: "s8", name: "GET stock:sku_*", service: "redis", kind: "CLIENT", start: 133, dur: 10,
+    attrs: { "db.system": "redis", "db.operation": "MGET" }, events: [] },
+  { id: "s10", parent: "s8", name: "UPDATE reservations", service: "postgres", kind: "CLIENT", start: 146, dur: 52,
+    attrs: { "db.system": "postgresql", "db.rows": "4" }, events: [{ t: 198, name: "commit" }] },
+
+  { id: "s11", parent: "s1", name: "POST /payments/charge", service: "payment-service", kind: "INTERNAL", start: 214, dur: 678,
+    attrs: { "payment.provider": "stripe", amount: "184.00", currency: "EUR", "retry.attempt": "1" },
+    events: [
+      { t: 219, name: "provider.selected", desc: "stripe/eu-west" },
+      { t: 878, name: "error",           desc: "upstream timeout after 638ms" },
+      { t: 880, name: "retry.scheduled", desc: "attempt 2 in 5000ms" },
+    ] },
+  { id: "s12", parent: "s11", name: "card.validate", service: "payment-service", kind: "INTERNAL", start: 218, dur: 18,
+    attrs: { "luhn.pass": "true", "card.brand": "visa" }, events: [] },
+  { id: "s13", parent: "s11", name: "POST api.stripe.com/v1/charges", service: "stripe-api", kind: "CLIENT", start: 240, dur: 638,
+    attrs: { "http.method": "POST", "http.url": "https://api.stripe.com/v1/charges", "http.status_code": "502", "http.retries": "2" },
+    events: [
+      { t: 242, name: "dns.lookup",   desc: "api.stripe.com → 3 addresses" },
+      { t: 247, name: "tls.handshake", desc: "TLSv1.3, 22ms" },
+      { t: 872, name: "socket.timeout", desc: "read timeout 600ms" },
+    ] },
+  { id: "s14", parent: "s13", name: "http.retry#2", service: "stripe-api", kind: "INTERNAL", start: 470, dur: 402,
+    attrs: { "retry.attempt": "2", "backoff.ms": "230" }, events: [] },
+  { id: "s15", parent: "s11", name: "INSERT ledger_entries", service: "postgres", kind: "CLIENT", start: 882, dur: 20,
+    attrs: { "db.system": "postgresql", "db.rows": "1", "db.rollback": "true" }, events: [{ t: 900, name: "rollback" }] },
+
+  { id: "s16", parent: "s1", name: "publish order.failed", service: "notification-service", kind: "PRODUCER", start: 905, dur: 240,
+    attrs: { "messaging.system": "kafka", "messaging.destination": "orders.dlq", "messaging.kafka.partition": "3" },
+    events: [{ t: 908, name: "render.receipt", desc: "template=receipt.html" }, { t: 1145, name: "offset.committed", desc: "offset=8821044" }] },
+  { id: "s17", parent: "s16", name: "render receipt.html", service: "notification-service", kind: "INTERNAL", start: 908, dur: 32,
+    attrs: { template: "receipt.html", "render.engine": "handlebars" }, events: [] },
+  { id: "s18", parent: "s16", name: "POST email.us-east-1.amazonaws.com", service: "aws-ses", kind: "CLIENT", start: 945, dur: 198,
+    attrs: { "http.method": "POST", "http.status_code": "200", "aws.region": "us-east-1" }, events: [] },
+
+  { id: "s19", parent: "s1", name: "serialize error response", service: "api-gateway", kind: "INTERNAL", start: 1152, dur: 93,
+    attrs: { "response.bytes": "412", "error.type": "UpstreamTimeout" }, events: [] },
+];
+
+const CRITICAL = new Set(["s1", "s11", "s13"]);
+
+/* ── model ─────────────────────────────────────────────── */
+const byId = new Map(SPANS.map(s => [s.id, s]));
+const childrenOf = new Map(SPANS.map(s => [s.id, []]));
+SPANS.forEach(s => { if (s.parent) childrenOf.get(s.parent).push(s); });
+childrenOf.forEach(list => list.sort((a, b) => a.start - b.start));
+SPANS.forEach(s => {
+  s.children = childrenOf.get(s.id);
+  s.depth = (() => { let d = 0, p = s.parent; while (p) { d++; p = byId.get(p).parent; } return d; })();
+  s.selfDur = Math.max(0, s.dur - s.children.reduce((n, c) => n + c.dur, 0));
+  s.status = s.attrs["http.status_code"] >= 500 || s.events.some(e => e.name === "error") ? "error" : "ok";
+});
+
+const pct = v => (v / TOTAL) * 100;
+const fmt = ms => ms === 0 ? "0ms" : ms >= 1000 ? (ms / 1000).toFixed(2) + "s" : ms < 1 ? ms.toFixed(1) + "ms" : Math.round(ms) + "ms";
+const fmtTick = ms => ms === 0 ? "0" : ms >= 1000 ? (ms / 1000).toFixed(2).replace(/\.?0+$/, "") + "s" : Math.round(ms) + "ms";
+
+/* ── axis ticks ────────────────────────────────────────── */
+const ticks = (() => {
+  for (const step of [50, 100, 200, 250, 500]) {
+    const n = Math.floor(TOTAL / step);
+    if (n >= 4 && n <= 9) return Array.from({ length: n + 1 }, (_, i) => i * step);
+  }
+  return [0, TOTAL];
+})();
+
+const axis = document.getElementById("axis");
+ticks.forEach(t => {
+  const el = document.createElement("div");
+  el.className = "tick";
+  el.style.left = pct(t) + "%";
+  el.innerHTML = '<span>' + fmtTick(t) + '</span>';
+  axis.appendChild(el);
+});
+
+/* ── rows ──────────────────────────────────────────────── */
+const rowsEl = document.getElementById("rows");
+const asideEl = document.getElementById("aside");
+let collapsed = new Set();
+let selected = null;
+let filter = "";
+let errorsOnly = false;
+let showCritical = true;
+
+function visibleSpans() {
+  const q = filter.trim().toLowerCase();
+  const filtering = !!(q || errorsOnly);
+  const matches = s => (!q || s.name.toLowerCase().includes(q) || s.service.toLowerCase().includes(q)) &&
+                      (!errorsOnly || s.status === "error");
+
+  // a filter keeps the matches plus their ancestors, so the tree still reads
+  let keep = null;
+  if (filtering) {
+    keep = new Set();
+    SPANS.filter(matches).forEach(s => {
+      keep.add(s.id);
+      let p = s.parent;
+      while (p) { keep.add(p); p = byId.get(p).parent; }
+    });
+  }
+
+  // an active filter ignores collapse, so a match is never trapped out of sight
+  const hiddenByCollapse = s => {
+    if (filtering) return false;
+    let p = s.parent;
+    while (p) { if (collapsed.has(p)) return true; p = byId.get(p).parent; }
+    return false;
+  };
+
+  return SPANS.filter(s => !hiddenByCollapse(s) && (!keep || keep.has(s.id)));
+}
+
+function render() {
+  const list = visibleSpans();
+  rowsEl.innerHTML = "";
+  document.getElementById("empty").style.display = list.length ? "none" : "block";
+
+  list.forEach(s => {
+    const color = SERVICES[s.service] || "var(--muted)";
+    const row = document.createElement("div");
+    row.className = "row" + (selected === s.id ? " sel" : "");
+    row.dataset.id = s.id;
+
+    const left = document.createElement("div");
+    left.className = "label-cell";
+    left.style.paddingLeft = (22 + s.depth * 15) + "px";
+    const canCollapse = s.children.length > 0 && s.depth > 0;
+    left.innerHTML =
+      '<span class="twist ' + (canCollapse ? (collapsed.has(s.id) ? "closed" : "") : "hidden") + '">▼</span>' +
+      '<span class="svc-dot" style="--c:' + color + '"></span>' +
+      '<span class="row-name">' + esc(s.name) + '</span>' +
+      '<span class="row-kind' + (s.status === "error" ? " err" : "") + '">' + (s.status === "error" ? "ERR" : s.kind) + '</span>' +
+      '<span class="grow"></span>' +
+      '<span class="row-dur' + (s.dur > 500 ? " hot" : "") + (s.status === "error" ? " bad" : "") + '">' + fmt(s.dur) + '</span>';
+
+    if (canCollapse) {
+      left.querySelector(".twist").addEventListener("click", ev => {
+        ev.stopPropagation();
+        collapsed.has(s.id) ? collapsed.delete(s.id) : collapsed.add(s.id);
+        render();
+      });
+    }
+
+    const track = document.createElement("div");
+    track.className = "track";
+    ticks.forEach(t => {
+      if (t === 0) return;
+      const g = document.createElement("div");
+      g.className = "grid-line";
+      g.style.left = pct(t) + "%";
+      track.appendChild(g);
+    });
+
+    const bar = document.createElement("div");
+    bar.className = "bar" + (showCritical && CRITICAL.has(s.id) ? " crit" : "");
+    bar.style.setProperty("--c", color);
+    bar.style.left = pct(s.start) + "%";
+    bar.style.width = Math.max(pct(s.dur), 0.35) + "%";
+    track.appendChild(bar);
+
+    const w = pct(s.dur);
+    const roomRight = pct(TOTAL - (s.start + s.dur));
+    const lbl = document.createElement("div");
+    const inside = w > 9 || roomRight < 5;
+    lbl.className = "bar-label" + (inside ? " inside" : "") + (showCritical && CRITICAL.has(s.id) ? " crit" : "");
+    lbl.textContent = fmt(s.dur);
+    if (inside) {
+      lbl.style.left = pct(s.start) + "%";
+      lbl.style.width = Math.max(w, 3) + "%";
+      lbl.style.paddingRight = "5px";
+      lbl.style.justifyContent = w > 9 ? "flex-end" : "flex-start";
+    } else {
+      lbl.style.left = "calc(" + pct(s.start + s.dur) + "% + 6px)";
+    }
+    track.appendChild(lbl);
+
+    row.append(left, track);
+    row.addEventListener("click", () => select(s.id));
+    rowsEl.appendChild(row);
+  });
+}
+
+function select(id) {
+  selected = id;
+  document.querySelectorAll(".row").forEach(r => r.classList.toggle("sel", r.dataset.id === id));
+  renderDetail(byId.get(id));
+}
+
+function renderDetail(s) {
+  const color = SERVICES[s.service] || "var(--muted)";
+  const childDur = s.children.reduce((n, c) => n + c.dur, 0);
+  const selfPct = Math.max(0, 100 - (childDur / Math.max(s.dur, 1)) * 100);
+
+  asideEl.innerHTML =
+    '<div class="aside-head">' +
+      '<span class="svc-dot" style="--c:' + color + '"></span>' +
+      '<div><h2>' + esc(s.name) + '</h2>' +
+      '<div class="sub">' + esc(s.service) + ' · ' + (s.kind.toLowerCase()) + ' span</div></div>' +
+    '</div>' +
+    '<div class="aside-body">' +
+      '<div class="group"><h3>Timing</h3><dl class="kv">' +
+        '<dt>Duration</dt><dd>' + fmt(s.dur) + '</dd>' +
+        '<dt>Self time</dt><dd>' + fmt(s.selfDur) + '</dd>' +
+        '<dt>Started at</dt><dd>+' + fmt(s.start) + '</dd>' +
+        '<dt>Ended at</dt><dd>+' + fmt(s.start + s.dur) + '</dd>' +
+        '<dt>Status</dt><dd style="color:' + (s.status === "error" ? "var(--error)" : "var(--text)") + '">' + s.status + '</dd>' +
+      '</dl>' +
+      '<div class="split" title="self vs children">' +
+        '<i style="width:' + selfPct + '%;background:' + color + '"></i>' +
+        '<i style="width:' + (100 - selfPct) + '%;background:rgba(255,255,255,.14)"></i>' +
+      '</div>' +
+      '<div class="split-legend"><span><b>' + Math.round(selfPct) + '%</b> self</span><span><b>' + (100 - Math.round(selfPct)) + '%</b> children</span></div>' +
+      '</div>' +
+      '<div class="group"><h3>Attributes</h3><dl class="kv">' +
+        Object.entries(s.attrs).map(([k, v]) => '<dt>' + esc(k) + '</dt><dd>' + esc(String(v)) + '</dd>').join("") +
+      '</dl></div>' +
+      (s.events.length ? '<div class="group"><h3>Events (' + s.events.length + ')</h3><ul class="events">' +
+        s.events.map(e => '<li><time>+' + fmt(e.t) + '</time><div><span class="ename">' + esc(e.name) + '</span>' +
+          (e.desc ? '<div class="edesc">' + esc(e.desc) + '</div>' : '') + '</div></li>').join("") +
+        '</ul></div>' : '') +
+      '<div class="group"><h3>Span id</h3><dl class="kv"><dt>span</dt><dd>' + s.id + '</dd>' +
+        '<dt>parent</dt><dd>' + (s.parent || "—") + '</dd></dl></div>' +
+    '</div>';
+}
+
+function esc(v) {
+  return String(v).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+/* ── controls ──────────────────────────────────────────── */
+document.getElementById("q").addEventListener("input", e => { filter = e.target.value; render(); });
+document.getElementById("errOnly").addEventListener("click", e => {
+  errorsOnly = !errorsOnly;
+  e.currentTarget.setAttribute("aria-pressed", String(errorsOnly));
+  render();
+});
+document.getElementById("critPath").addEventListener("click", e => {
+  showCritical = !showCritical;
+  e.currentTarget.setAttribute("aria-pressed", String(showCritical));
+  render();
+});
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input")) return;
+  const list = visibleSpans();
+  if (!list.length) return;
+  const i = list.findIndex(s => s.id === selected);
+  if (e.key === "ArrowDown") { e.preventDefault(); select(list[Math.min(i + 1, list.length - 1)].id); }
+  if (e.key === "ArrowUp")   { e.preventDefault(); select(list[Math.max(i - 1, 0)].id); }
+});
+
+// deep links: ?q=redis, ?errors=1, ?span=s13
+const params = new URLSearchParams(location.search);
+if (params.get("q")) { filter = params.get("q"); document.getElementById("q").value = filter; }
+if (params.get("errors") === "1") {
+  errorsOnly = true;
+  document.getElementById("errOnly").setAttribute("aria-pressed", "true");
+}
+
+render();
+select(byId.has(params.get("span")) ? params.get("span") : "s13");
+</script>
+</body>
+</html>

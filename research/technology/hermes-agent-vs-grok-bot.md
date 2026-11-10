@@ -4,7 +4,7 @@ category: technology
 tags: [hermes-agent, grok-bot, nous-research, ai-agents, bot-primitive, comparison, self-hosted, bot-roster]
 status: complete
 created: 2026-10-29
-updated: 2026-10-29
+updated: 2026-10-31
 sources:
   - https://github.com/nousresearch/hermes-agent
   - https://hermes-agent.nousresearch.com/docs/user-guide/bot-mode
@@ -98,6 +98,38 @@ Independent designs landed on the same numbers and the same object graph, which 
 - **Skills from demonstration.** Both turn a demonstrated workflow into a reusable skill: Grok Bot by recording, Hermes by an autonomous learning loop after complex tasks ([skills](https://docs.x.ai/grok-bot/skills-routines-and-automations), [README](https://github.com/nousresearch/hermes-agent)).
 - **The same layering.** Capability at the account level, context at the role level: Grok Bot states it as tools and skills account-wide versus memory and routines per Bot ([design](https://x.ai/news/designing-grok-bot)); Hermes stores per-profile state in ~/.hermes/profiles/<name>/ and keeps shared capability in plugins and the Portal ([profiles](https://hermes-agent.nousresearch.com/docs/user-guide/profiles)).
 
+## Memory mechanisms, side by side
+
+Asked as a follow-up: the memory models look alike on a skim. They are the same family — a curated durable store, injected into context, holding facts and preferences while the transcript holds the work — and they diverge on the two details that decide whether such a store works: **the bound** and **the boundary**.
+
+| Mechanism | Grok Bot | Hermes Agent |
+|---|---|---|
+| Storage form | Undocumented; a per-Bot memory store with no file surface | Two files per profile: MEMORY.md and USER.md |
+| Size bound | No documented cap | 2,200 chars for MEMORY.md, 1,375 for USER.md |
+| Overflow behaviour | Not documented | The write fails and the agent makes room in the same turn |
+| Who writes | The Bot, on its own judgment, without asking | The agent, through a memory tool; write_approval can stage non-CLI writes |
+| Injection | Undocumented [unverified] | Frozen snapshot in the system prompt at session start, for prefix-cache stability |
+| Recall of old work | The transcript itself, or its auto-summary | session_search over FTS5, with LLM summarization |
+| User inspection | Conversation only — ask, correct, forget | The files themselves, plus memory commands |
+| Scope | Per Bot, with a few account-wide facts (name, time zone) | Per profile, strictly; sharing needs an external memory provider |
+| Credentials | Vault, outside memory; the Bot never sees values | The credential store, outside memory |
+| Survives a fresh session | Yes — memory, files, routines and settings outlive a reset | Yes — that is the design's premise |
+
+Sources: Grok Bot — [bots](https://docs.x.ai/grok-bot/bots.md), [vault](https://docs.x.ai/grok-bot/vault.md). Hermes — [memory](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory), [profiles](https://hermes-agent.nousresearch.com/docs/user-guide/profiles).
+
+### Same shape, three real divergences
+
+1. **Bounded vs unbounded.** Hermes' memory is a fixed budget: when a write would overflow, the tool returns an error and the agent consolidates or removes entries before retrying. Grok Bot documents no limit, which means memory can quietly become a second transcript — the failure mode the bound exists to prevent ([memory](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory)).
+2. **Retrieval vs summary.** Hermes keeps the transcript out of context and gives the agent a *lookup* when it needs history: session search over an indexed log, summarized on demand. Grok Bot has no retrieval tier — the history is either in context or inside the auto-summary, and neither is queryable ([memory](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory), [forum](https://forum.cursor.com/t/grok-bot-prune-compact-an-agent-s-context-without-creating-a-new-bot/168333)).
+3. **Shared by default vs isolated by default.** Grok Bot shares a thin layer of facts across every Bot on the account. Hermes isolates memory per profile and warns that two writers on one home compound each other's state; sharing requires an external provider ([bots](https://docs.x.ai/grok-bot/bots.md), [profiles](https://hermes-agent.nousresearch.com/docs/user-guide/profiles)).
+
+### The boundary is the mechanism
+
+Hermes states the dependency outright: "The whole memory system is built around the moment a session ends" — MEMORY.md and USER.md carry the essentials forward, and session search fills the gaps once the old context is gone ([memory](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory)). Its own guidance is to run /new at natural boundaries, because a long unreset chat "grows expensive" and "the learning loop of forget, recall from memory, search past sessions almost never gets to fire".
+
+Grok Bot removed that moment. A Bot has one canonical conversation; the only boundary is reset, and reset is destructive to the log. So the mechanism is the same, while the event that switches it on has been deleted — which is why memory there reads as a store the Bot writes to on its own rather than a cycle of forget, consolidate, and recall. The one place Grok Bot states the payoff is the same sentence Hermes would: memory lets a Bot "keep a role over time without replaying every prior message" ([bots](https://docs.x.ai/grok-bot/bots.md)).
+
+Injection is the open question that follows. Hermes freezes memory into the system prompt at session start, so a new entry is invisible to the running session — acceptable only because sessions end. If Grok Bot does the same, a Bot's own memory writes would stay latent for the life of its single thread; if it re-injects every turn, it pays for the store on every reply. The docs describe neither, so this stays [unverified].
 ## What is left that is actually special
 
 Three things, and none of them is the bot primitive:
@@ -124,6 +156,7 @@ Inverting the question is the useful conclusion: Hermes proves the primitive is 
 - Whether the token economics converge: Grok Bot meters a weekly pool, Hermes meters nothing itself but re-sends the transcript on every turn of a long chat, which its own memory docs call expensive ([memory](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory)).
 
 ## Related
+- [Why Grok Bot Is Popular — The User-Review Evidence](../product/grok-bot-popularity-user-reviews.md) — Hermes users on the gap themselves, calling bot mode "half backed" and the desktop app overloaded while still preferring their own stack, plus the beginner-vs-tinkerer split this comparison decides on paper.
 
 - [Grok Bot — What It Is, and How a Bot Works](./grok-bot.md) — the product side of this comparison in full.
 - [The Bot as a Primitive — Why the Bot, Not the Chat, Is the Unit](./bot-primitive.md) — the concept both products implement, and the unbounded-thread failure Grok Bot still has and Hermes fixed.
@@ -132,7 +165,11 @@ Inverting the question is the useful conclusion: Hermes proves the primitive is 
 - [Context Compaction Across Coding Agents](./coding-agent-compaction-comparison.md) — how other harnesses implement the working-set boundary Hermes exposes as /compact.
 - [Grok Bot Memory — What Survives a Single Long-Lived Chat](./grok-bot-memory.md) — the memory side of the compaction gap compared here.
 - [Nakama vs Hermes Agent — A Team Platform Against a One-Operator Harness](./nakama-vs-hermes-agent.md) — what happens when someone rebuilds these same primitives behind a login: org tenancy, roles, and a shared skill library, and where Hermes' one-operator model shows its edge.
+- [Claude Duet vs Grok Bot — One Assistant or a Roster?](./claude-duet-vs-grok-bot.md) — the third shape: one assistant instead of a roster.
+- [Hermes-like App on a pi Backend — pi-coding-agent or pi-agent-core?](./hermes-like-app-on-pi-backend.md) — what it takes to rebuild this roster shape on pi: which layer owns sessions, memory slots, skills and workspaces, and what you still write yourself.
 
 ## Changelog
 
+- 2026-10-29 — added the memory-mechanism comparison after the follow-up question: same family of curated store, but Hermes bounds it and builds it around session ends while Grok Bot bounds it nowhere and has no non-destructive boundary.
+- 2026-11-06 — linked the review record of Hermes users testing both: they confirm the setup gap in Hermes' favour and still mostly stay, which is the operator split this file predicts.
 - 2026-10-29 — created in response to "why so special, hermes can do that right?". All Hermes and Grok Bot sources via TinyFish; verdict is that the primitive is commodity and the differentiators are packaging, defaults, and distribution.

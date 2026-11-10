@@ -127,6 +127,8 @@ Vault is deliberately outside this system: passwords, cards, and contact info li
 - How `Reset`, `Recover`, and computer updates interact with files on the shared computer — the Vault page warns that reset removes installed apps and packages, which is a different kind of forgetting ([vault](https://docs.x.ai/grok-bot/vault.md)).
 
 ## Related
+- [Why Grok Bot Is Popular](../product/grok-bot-popularity-user-reviews.md) — the review record on forgetting instructions and expired approval cards, the demand-side cost of the memory limits this file describes.
+- [Agent Memory — How Grok Bot, OpenMausBot, and OpenBot Store, Retrieve, and Forget](./agent-memory-grok-bot-openmausbot-openbot.md) — three media for one job: an opaque store, a Markdown notebook with a four-stage model pipeline, and SQLite rows split into an 8 KB essential block and tool-searched entries.
 
 - [Grok Bot — What It Is, and How a Bot Works](./grok-bot.md) — the product context for this memory model.
 - [The Bot as a Primitive — Why the Bot, Not the Chat, Is the Unit](./bot-primitive.md) — why durable state and transcript must be separate objects, and what the missing working set costs.

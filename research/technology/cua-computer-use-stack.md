@@ -4,7 +4,7 @@ category: technology
 tags: [cua, trycua, computer-use, cua-driver, lume, sandbox, mcp, licensing]
 status: complete
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-07
 sources:
   - https://github.com/trycua/cua
   - https://raw.githubusercontent.com/trycua/cua/main/README.md
@@ -91,7 +91,10 @@ So the dependency is one wheel and one binary, not a framework. That is why Open
 - [The Computer-Use Stack for Agents on gVisor](./computer-use-stack-for-agents-on-gvisor.md) — why Cua's images are not a shortcut to a faster desktop under gVisor.
 - [Open-Source Grok Bot Alternatives with First-Class Sandbox VMs](./open-source-grok-bot-alternatives.md) — Cua and the other agent-desktop SDKs side by side.
 - [Grok Bot, OpenMausBot, OpenBot Compared](./grok-bot-openmausbot-openbot-compared.md) — how OpenMausBot and OpenBot use the same driver in opposite ways.
+- [Cua Driver vs Vercel agent-desktop — tree-plus-pixels against tree-only, with the benchmark](./cua-driver-vs-vercel-agent-desktop.md) — background full-pass 58% vs 20% on macOS in a pre-registered test, and the 78% vs 70% foreground gap that stays within noise.
+- ["Bevel Agent Desktop" — the three name collisions and the shell-class alternatives](./bevel-agent-desktop.md) — no product carries that name; Bevel Desktop is a macOS shell with no agent interface.
 
 ## Changelog
 
+- 2026-11-07 — cross-linked the Cua Driver vs Vercel agent-desktop head-to-head and the "Bevel agent desktop" disambiguation from Related.
 - 2026-11-02 — created from the trycua/cua README and licensing section, the Cua docs for sandboxes and images, and OpenMausBot's build script at `b1e0ba941e5c`.

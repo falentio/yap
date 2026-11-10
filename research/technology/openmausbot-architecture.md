@@ -338,6 +338,7 @@ Workspace boundaries are plain pnpm workspaces, no Turbo or Nx. `pnpm-workspace.
 - The decision model's threshold in `decideRoomResponder` is a fixed constant in code. Whether it is tuned per deployment or exposed as a setting was not traced.
 
 ## Related
+- [Grok Bot, OpenMausBot, and OpenBot — Three Answers to the Same Primitive](./grok-bot-openmausbot-openbot-compared.md) — the three-way comparison: shared account computer vs your machine and engine choice vs a per-bot container behind a CEL gateway.
 
 - [OpenMausBot's Bot Computer](./openmausbot-computer-layer.md) — the deep dive on the four backends, the container flag set, and shared screen control.
 - [Open-Source Grok Bot Alternatives with First-Class Sandbox VMs](./open-source-grok-bot-alternatives.md) — the sibling comparison this file feeds; its container verdict for the Local VM is confirmed here.

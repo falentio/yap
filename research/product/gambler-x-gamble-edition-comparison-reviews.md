@@ -135,6 +135,7 @@ The remake's reception rests on **one detailed comparison comment** plus the pub
 
 ## Related
 
+- [New PC Roguelikes and Roguelites Ported to Android](./pc-roguelike-android-ports.md) — 2026's PC-to-Android roguelite port wave, with the store prices and touch-adaptation verdicts.
 - [Gambler × Gamble! (2016) — Gameplay](./gambler-x-gamble-2016-gameplay.md) — full rules for the original edition.
 - [Gambler × Gamble!! (2024 remake) — Gameplay](./gambler-x-gamble-2024-remake-gameplay.md) — full rules and documented changes for the remake.
 - [Board Games Like Coup: Rebellion G54 — Ranked Recommendations](./board-games-like-coup-rebellion-g54.md) — where a light bluffing filler like this fits.

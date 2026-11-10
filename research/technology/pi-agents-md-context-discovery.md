@@ -4,7 +4,7 @@ category: technology
 tags: [pi, pi-coding-agent, agents-md, context-files, instructions, earendil]
 status: complete
 created: 2026-10-12
-updated: 2026-10-12
+updated: 2026-11-10
 sources:
   - https://pi.dev/
   - https://github.com/code-yeongyu/pi-nested-agents-md
@@ -136,8 +136,10 @@ nested `deeper/AGENTS.md` never appears from any of the three cwds.
 - [Context Compaction Across Coding Agents](./coding-agent-compaction-comparison.md) — how each agent shortens a full context window, and what T3's handoff does differently
 - [oh-my-pi (omp) — Feature Inventory](./oh-my-pi-features.md)
 - [T3 Code — Context Handoff When Switching CLI Providers](./t3-code-provider-switch-context-handoff.md)
+- [Pi Per-Project Configuration — the .pi Directory and the Project-Trust Gate](../reference/pi-project-configuration.md) — the `AGENTS.md` discovery rule beside the trust-gated `.pi` tree: context files load either way, and `packages/AGENTS.md` still needs the cwd.
 
 ## Changelog
 
+- 2026-11-10 — linked the per-project configuration reference.
 - 2026-10-12 — created. Source read of `resource-loader.js` at pi v1.1.0, plus
   three live one-shot runs confirming cwd-and-ancestors-only discovery.

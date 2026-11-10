@@ -149,6 +149,7 @@ Searching "best agent memory 2026" returns roughly a dozen domains — hydradb, 
 - BEAM at 10M tokens: Mem0 reports 48.6, and the SOTA claims there are young enough to be noise.
 
 ## Related
+- [Agent Memory — How Grok Bot, OpenMausBot, and OpenBot Store, Retrieve, and Forget](./agent-memory-grok-bot-openmausbot-openbot.md) — three media for one job: an opaque store, a Markdown notebook with a four-stage model pipeline, and SQLite rows split into an 8 KB essential block and tool-searched entries.
 
 - [Grok Bot Memory — What Survives a Single Long-Lived Chat](./grok-bot-memory.md)
 - [Context Compaction Across Coding Agents](./coding-agent-compaction-comparison.md)

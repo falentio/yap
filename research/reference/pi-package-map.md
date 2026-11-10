@@ -4,7 +4,7 @@ category: reference
 tags: [pi, earendil, packages, pi-agent-core, pi-ai, pi-coding-agent, pi-durable, architecture]
 status: complete
 created: 2026-10-29
-updated: 2026-10-29
+updated: 2026-10-31
 sources:
   - https://github.com/earendil-works/pi/tree/babe30a7e6c1
   - https://github.com/earendil-works/pi/blob/babe30a7e6c1/packages/agent/package.json
@@ -186,6 +186,9 @@ skills, extensions, and the TUI all live elsewhere.
 
 - [Pi Coding Agent on Cloudflare Workers with a Daytona Filesystem](./../technology/pi-coding-agent-cloudflare-workers-daytona-fs.md)
   — the hosting comparison that turns on this split.
+- [pi-agent-core vs pi-coding-agent — The Loop and the Product](./../technology/pi-agent-core-vs-pi-coding-agent.md)
+  — the package-level compare the three-layer split here implies: what the loop owns, what only the
+  product owns, and which host fits each.
 - [Pi Durable vs the Pi Coding Agent](./../technology/pi-durable-vs-pi-coding-agent.md) — the two
   agent stacks compared as products.
 - [Pi Durable on Cloudflare Workers & Durable Objects](./../technology/pi-durable-cloudflare-workers-durable-objects.md)
@@ -193,8 +196,12 @@ skills, extensions, and the TUI all live elsewhere.
 
 - [Chord — Earendil's Distributed Object Runtime](./../technology/chord-distributed-object-runtime.md) — what the `chord` row in the graph actually is, and why only `pi-durable` (and one `Context` import in `pi-env`) consumes it.
 - [Flue vs pi-agent-core — Framework or Loop?](./../technology/flue-vs-pi-agent-core.md) — a framework built on agent-core, with the version-pin and lock-in costs spelled out.
+- [Hermes-like App on a pi Backend — pi-coding-agent or pi-agent-core?](./../technology/hermes-like-app-on-pi-backend.md) — applies this split to a product decision: which layer a Hermes-shaped app should build on, and when agent-core is the right smaller dependency.
+
 ## Changelog
 
+- 2026-10-31 — linked [Hermes-like App on a pi Backend](./../technology/hermes-like-app-on-pi-backend.md) from Related: the map split is the decision that file applies.
+- 2026-11-02 — linked [pi-agent-core vs pi-coding-agent](./../technology/pi-agent-core-vs-pi-coding-agent.md) (re-read at 1.5.0) from Related.
 - 2026-10-29 — added §6: is `pi-agent-core` only the coding agent engine? Verdict table plus the external embedders (Note Pi for Obsidian, the Go `bismarck-engine` port, `pi-codemode` use of `runToolCall()`).
 
 - 2026-10-29 — created, answering "what is pi core". Evidence: scout read of

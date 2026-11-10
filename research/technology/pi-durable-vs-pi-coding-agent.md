@@ -4,7 +4,7 @@ category: technology
 tags: [pi, pi-durable, coding-agent, harness, durability, multi-client, earendil, comparison]
 status: complete
 created: 2026-10-27
-updated: 2026-10-27
+updated: 2026-11-03
 sources:
   - https://earendil.com/posts/pi-durable/
   - https://github.com/earendil-works/pi/tree/ce950d78f424dcaf9f5d6a03ce80ab141130eb1d/packages/durable
@@ -260,6 +260,8 @@ scheduled to close, the architectural gap is not.
 
 ## Related
 
+- [Pi RPC Mode](./pi-rpc-mode.md) — the coding agent's own JSONL subprocess protocol: the
+  non-Node embedding path, its 33 commands, and why `agent_settled` is the completion signal.
 - [Pi Durable on Cloudflare Workers & Durable Objects](./pi-durable-cloudflare-workers-durable-objects.md)
   — the hosting study: commit-before-visible durability, DO SQLite storage, alarm wake-up, limits,
   and §8 on why the extensions are not the coding agent's.

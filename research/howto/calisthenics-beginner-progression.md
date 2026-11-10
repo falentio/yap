@@ -437,6 +437,8 @@ average is flat, the surplus is not real — add snacks, not meals.
 - [Beginner Routines & Resources (r/bodyweightfitness wiki)](https://www.reddit.com/r/bodyweightfitness/wiki/beginner/) — the index of alternatives, including a Minimalist Routine if the RR is too much time.
 - [Baz-Valle et al. 2022 — Resistance Training Volume and Hypertrophy (PMC8884877)](https://pmc.ncbi.nlm.nih.gov/articles/PMC8884877/) — the 12–20 weekly-sets finding.
 - [Carbone & Pasiakos 2019 — Dietary Protein and Muscle Mass (PMC6566799)](https://pmc.ncbi.nlm.nih.gov/articles/PMC6566799/) — why 0.8 g/kg is a floor, not a target.
+- [Equipment-Free Home Workout — A Ladder for Every Pattern](./home-workout-no-equipment.md) — the same ladders rebuilt for a room with no bar, using doorframes and tables for the pulls.
+- [How Long a Normal Person Can Dead Hang](../reference/dead-hang-time.md) — what the 60 s rung target is measured against, and why no population norm exists.
 - [Berg Movement — Worst Calisthenics Injuries](https://www.bergmovement.com/calisthenics-blog/calisthenics-tier-list) — the injury table in Part 7 in full, with rehab protocols.
 
 ## Changelog

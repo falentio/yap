@@ -145,6 +145,8 @@ The beta headline was "88% smaller default bundle"; the GA post, comparing again
 
 ## Related
 
+- [uFuzzy Against the Field](./ufuzzy-vs-alternatives.md) — same shape of library decision: pick on a size/latency axis, keep the maintenance record beside it.
+- [Remotion — What It Is, What It Costs, and Where It Breaks](./remotion.md) — the production half: video as React components rendered frame by frame through headless Chrome.
 - [Technology index](./README.md) — index of `research/technology/` findings.
 
 ## Changelog

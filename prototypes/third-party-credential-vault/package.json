@@ -1,0 +1,9 @@
+{
+  "name": "third-party-credential-vault",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/",
+    "check": "tsc --noEmit"
+  }
+}

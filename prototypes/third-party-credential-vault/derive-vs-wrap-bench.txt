@@ -1,0 +1,11 @@
+derive  (shared master) write   98.5 us/row   read   76.9 us/row   stored 72 B/row
+wrap    (per-row DEK)  write  118.3 us/row   read  100.8 us/row   stored 136 B/row
+derive  (shared master) write   99.0 us/row   read   83.2 us/row   stored 72 B/row
+wrap    (per-row DEK)  write   84.6 us/row   read   61.5 us/row   stored 136 B/row
+
+10,000 rows at 20ms RTT, 50 in flight:
+  derive / cached         0 calls        0.0 ms
+  wrap, no cache      10000 calls        4.1 s
+
+cache hit path: 0.04 us/row (no RTT)
+cache invalidation events that each cost 1 call/row: KMS rotation, instance eviction, disk loss

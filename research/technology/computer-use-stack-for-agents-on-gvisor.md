@@ -4,7 +4,7 @@ category: technology
 tags: [gvisor, computer-use, agents, sandbox, desktop, x11, wayland, vnc, rdp, playwright, chromium, xvfb, cua, at-spi, accessibility, qemu]
 status: complete
 created: 2026-11-01
-updated: 2026-11-06
+updated: 2026-11-07
 sources:
   - https://gvisor.dev/docs/user_guide/compatibility/
   - https://github.com/google/gvisor/blob/aa767e4c43d0/images/systemd-user/gnome-mcp/desktop_mcp.py
@@ -244,9 +244,12 @@ argued from feature lists.
 - [Cua — What It Is and What "Cua Sandbox" Means](./cua-computer-use-stack.md) — the component list, the licence split, and the one wheel OpenMausBot pins.
 - [Open-Source Grok Bot Alternatives](./open-source-grok-bot-alternatives.md) —
   Cua and the other agent-desktop SDKs in context.
+- [Cua Driver vs Vercel agent-desktop — tree-plus-pixels against tree-only, with the benchmark](./cua-driver-vs-vercel-agent-desktop.md) — background full-pass 58% vs 20% on macOS in a pre-registered test, and the 78% vs 70% foreground gap that stays within noise.
+- ["Bevel Agent Desktop" — the three name collisions and the shell-class alternatives](./bevel-agent-desktop.md) — no product carries that name; Bevel Desktop is a macOS shell with no agent interface.
 
 ## Changelog
 
+- 2026-11-07 — cross-linked the Cua Driver vs Vercel agent-desktop head-to-head and the "Bevel agent desktop" disambiguation from Related.
 - 2026-11-06 — cross-linked the Windows-like desktop research from Related.
 - 2026-11-02 — added whether Cua itself runs there: the `--runtime gvisor` flag, what the driver keeps and loses, and why OpenMausBot's Local VM cannot be pointed at it.
 - 2026-11-01 — created from the pinned `gnome-mcp` image

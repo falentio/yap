@@ -262,6 +262,8 @@ next day. The injury guidance is explicit: keep aches at 2–3 out of 10, and do
 ## Related
 
 - [Calisthenics from Zero — Beginner Progression Guide](./calisthenics-beginner-progression.md) — the reasoning, the full nine-pattern ladders, and all citations.
+- [Equipment-Free Home Workout — A Ladder for Every Pattern](./home-workout-no-equipment.md) — substitute every bar-dependent rung when nothing can be hung from.
+- [How Long a Normal Person Can Dead Hang](../reference/dead-hang-time.md) — where the 10/30/60 s rung gates come from and what real hang times look like.
 - [Recommended Routine (r/bodyweightfitness)](https://www.reddit.com/r/bodyweightfitness/wiki/kb/recommended_routine/) — the source program this plan is compressed from.
 
 ## Changelog

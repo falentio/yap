@@ -146,6 +146,7 @@ mutagen sync create --name=site /local/dir example.org:/remote/dir   # default m
 ## Related
 
 - [Watching File Changes on S3 Object Storage](./s3-file-change-detection.md) — the object-storage side of "detect the change" (event notifications vs polling vs full-scan), same push-beats-poll theme.
+- [Durable pi State on an Ephemeral VM — Object-Storage Backup and Restore](../howto/durable-pi-state-on-ephemeral-vm.md) — the object-storage counterpart for a machine that will be destroyed: content-addressed seals instead of a live mirror.
 - [Reading a File From the End](./read-file-from-end.md) — HTTP suffix ranges and streaming primitives when "getting the file" is the problem rather than copying it.
 
 ## Changelog

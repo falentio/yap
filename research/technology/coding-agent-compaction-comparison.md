@@ -4,7 +4,7 @@ category: technology
 tags: [coding-agents, context-window, compaction, summarization, claude-code, codex-cli, opencode, pi, gemini-cli, cursor, amp]
 status: complete
 created: 2026-10-26
-updated: 2026-10-26
+updated: 2026-10-31
 sources:
   - https://code.claude.com/docs/en/context-window
   - https://code.claude.com/docs/en/how-claude-code-works
@@ -150,6 +150,7 @@ Compaction is not called the same thing everywhere, and context inspection is no
 
 ## Related
 
+- [DeepSeek Harness vs Pi](./deepseek-harness-vs-pi-compaction.md) — the deep dive on one pair: dsh's output-reserved trigger, model-free pruner, ratio tail and bracketed transaction against pi's fixed reserve, typed cut points and tree entries.
 - [T3 Code — Context Handoff When Switching CLI Providers](./t3-code-provider-switch-context-handoff.md) — the sibling problem: moving context between providers rather than shortening it within one.
 - [Pi Coding Agent — Which AGENTS.md Files It Loads](./pi-agents-md-context-discovery.md) — what gets loaded into Pi's window before compaction has anything to do.
 - [oh-my-pi (omp) — Feature Inventory](./oh-my-pi-features.md) — the Pi fork whose compaction behaviour the Pi docs govern.
@@ -159,3 +160,4 @@ Compaction is not called the same thing everywhere, and context inspection is no
 ## Changelog
 
 - 2026-10-26 — created. Claude Code, Codex CLI, OpenCode V2, Pi, Gemini CLI and Cursor read from vendor documentation; Amp and the Codex local-path internals come from a third-party source-level gist and are labelled as such.
+- 2026-10-31 — linked the [DeepSeek Harness vs Pi](./deepseek-harness-vs-pi-compaction.md) deep dive; no findings changed.

@@ -580,6 +580,7 @@ replacement, and the 2026 engine work does not change that yet.
 - [Turso Data Loss & Data Exposure Incidents — Deep Dive](./turso-data-loss-incidents.md) — the incident archaeology behind §2.3 and §11.
 - [Turso Cloud Region Uptime Snapshot — 2026-10-28](../../sources/datasets/turso-cloud-region-uptime-2026-10-28.md) — captured status-page data behind §2.2.
 - [Drizzle Effect Integration](./drizzle-effect-integration.md) — client-layer integration if this becomes a build decision.
+- [OpenVZ Trade-offs — Sharing One Kernel, and What It Costs a PostgreSQL Host](./openvz-virtualization-tradeoffs.md) — the other escape from that list: self-hosting the database on a kernel you do not own.
 
 ## Changelog
 

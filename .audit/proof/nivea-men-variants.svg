@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="560" viewBox="0 0 1600 560">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fdfbf7"/><stop offset="100%" stop-color="#f3eee5"/></linearGradient>
+    <linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#dbd1c0"/><stop offset="100%" stop-color="#c1b4a2"/></linearGradient>
+    <linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#fff" stop-opacity="0.5"/><stop offset="30%" stop-color="#fff" stop-opacity="0.05"/><stop offset="100%" stop-color="#000" stop-opacity="0.14"/></linearGradient>
+    <linearGradient id="deep1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#4a5a6e"/><stop offset="100%" stop-color="#26313d"/></linearGradient>
+    <linearGradient id="deep2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#5d4a3c"/><stop offset="100%" stop-color="#33261d"/></linearGradient>
+    <linearGradient id="bw" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f2f2f0"/><stop offset="55%" stop-color="#dcdcda"/><stop offset="100%" stop-color="#a8a8a6"/></linearGradient>
+    <linearGradient id="ck1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7fc4d8"/><stop offset="100%" stop-color="#3d87a0"/></linearGradient>
+    <linearGradient id="ck2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#8fd1a4"/><stop offset="100%" stop-color="#3f8e5c"/></linearGradient>
+    <linearGradient id="fa" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#c9d3c4"/><stop offset="100%" stop-color="#8fa389"/></linearGradient>
+  </defs>
+  <rect width="1600" height="560" fill="url(#bg)"/>
+  <ellipse cx="800" cy="470" rx="760" ry="34" fill="#c1b4a2" opacity="0.18"/>
+  <rect x="60" y="446" width="1480" height="22" rx="5" fill="url(#sh)"/>
+
+  <g font-family="Helvetica,Arial,sans-serif" font-weight="700" fill="#8a8377" opacity="0.8" font-size="24" text-anchor="middle">
+    <text x="150" y="130">4.7</text><text x="330" y="152">4.4</text><text x="510" y="140">4.8</text>
+    <text x="690" y="160">5.0</text><text x="880" y="176">4.1</text><text x="1060" y="190">5.0</text>
+  </g>
+
+  <!-- 1 Deep Darkwood S -->
+  <g><rect x="92" y="196" width="116" height="250" rx="30" fill="url(#deep2)"/><rect x="92" y="196" width="116" height="250" rx="30" fill="url(#gl)"/>
+     <rect x="113" y="158" width="74" height="44" rx="12" fill="#241a13"/><rect x="92" y="258" width="116" height="74" fill="#fff" opacity="0.10"/>
+     <rect x="110" y="220" width="12" height="186" rx="6" fill="#fff" opacity="0.15"/></g>
+  <!-- 2 Deep Espresso S -->
+  <g><rect x="272" y="216" width="112" height="230" rx="28" fill="url(#deep1)"/><rect x="272" y="216" width="112" height="230" rx="28" fill="url(#gl)"/>
+     <rect x="293" y="180" width="70" height="42" rx="11" fill="#1d2630"/><rect x="272" y="272" width="112" height="68" fill="#fff" opacity="0.10"/></g>
+  <!-- 3 Black & White A -->
+  <g><rect x="452" y="204" width="110" height="242" rx="28" fill="url(#bw)"/><rect x="452" y="204" width="110" height="242" rx="28" fill="url(#gl)"/>
+     <rect x="473" y="168" width="68" height="40" rx="11" fill="#6f6f6d"/><rect x="452" y="256" width="110" height="34" fill="#2b2b2a" opacity="0.5"/>
+     <rect x="452" y="306" width="110" height="34" fill="#fff" opacity="0.6"/></g>
+  <!-- 4 Freezy Green A -->
+  <g><rect x="632" y="224" width="104" height="222" rx="26" fill="url(#ck2)"/><rect x="632" y="224" width="104" height="222" rx="26" fill="url(#gl)"/>
+     <rect x="652" y="190" width="64" height="38" rx="10" fill="#2f6f46"/><rect x="632" y="276" width="104" height="62" fill="#fff" opacity="0.16"/></g>
+  <!-- 5 Cool Kick Cool Blue B -->
+  <g><rect x="816" y="240" width="102" height="206" rx="26" fill="url(#ck1)"/><rect x="816" y="240" width="102" height="206" rx="26" fill="url(#gl)"/>
+     <rect x="836" y="208" width="62" height="36" rx="10" fill="#2e6a80"/><rect x="816" y="288" width="102" height="56" fill="#fff" opacity="0.16"/></g>
+  <!-- 6 Fresh Active B -->
+  <g opacity="0.94"><rect x="996" y="256" width="96" height="190" rx="24" fill="url(#fa)"/><rect x="996" y="256" width="96" height="190" rx="24" fill="url(#gl)"/>
+     <rect x="1014" y="226" width="60" height="34" rx="9" fill="#6d8168"/><rect x="996" y="302" width="96" height="52" fill="#fff" opacity="0.20"/></g>
+  <!-- unrated -->
+  <g opacity="0.40">
+    <rect x="1160" y="286" width="86" height="160" rx="22" fill="#a9b2bd"/><rect x="1160" y="286" width="86" height="160" rx="22" fill="url(#gl)"/><rect x="1176" y="258" width="54" height="32" rx="9" fill="#828c98"/>
+    <rect x="1272" y="300" width="80" height="146" rx="20" fill="#b7b0a6"/><rect x="1272" y="300" width="80" height="146" rx="20" fill="url(#gl)"/><rect x="1286" y="274" width="52" height="30" rx="8" fill="#918a80"/>
+    <rect x="1378" y="312" width="76" height="134" rx="19" fill="#9aa8a0"/><rect x="1378" y="312" width="76" height="134" rx="19" fill="url(#gl)"/><rect x="1392" y="288" width="48" height="28" rx="8" fill="#77857d"/>
+  </g>
+</svg>

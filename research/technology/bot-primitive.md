@@ -121,6 +121,8 @@ That maps onto the compaction machinery other harnesses already ship ([Context C
 - Whether the primitive generalises past vendor products: the same argument appears in coding harnesses, where the durable conversation rather than the chat turn is the unit ([Pi Durable vs the Pi Coding Agent](./pi-durable-vs-pi-coding-agent.md)).
 
 ## Related
+- [Why Grok Bot Is Popular — Why a Chat Is Not Enough](../product/grok-bot-popularity-user-reviews.md) — the review-side case for the primitive this file theorises: a chat advises, a bot concludes, and the jobs users hire it for are the ones a chat structurally cannot finish.
+- [Grok Bot, OpenMausBot, and OpenBot — Three Answers to the Same Primitive](./grok-bot-openmausbot-openbot-compared.md) — the three-way comparison: shared account computer vs your machine and engine choice vs a per-bot container behind a CEL gateway.
 
 - [Grok Bot — What It Is, and How a Bot Works](./grok-bot.md) — the product this concept was read out of.
 - [Grok Bot Extensibility — Apps, Skills, Routines, and MCP Connectors](./grok-bot-extensibility.md) — what attaches to the Bot, and through which contracts.
@@ -129,6 +131,7 @@ That maps onto the compaction machinery other harnesses already ship ([Context C
 - [Features Worth Porting to Pi as Extensions](./coding-agent-features-to-port-to-pi-extensions.md) — convergent primitives across agent products, used there as a port list rather than a taxonomy.
 - [Hermes Agent vs Grok Bot — Does Hermes Already Do the Bot Primitive?](./hermes-agent-vs-grok-bot.md) — a second implementation of the same primitive, and proof the unbounded-thread failure is a choice: Hermes reroutes /new to /compact.
 - [Grok Bot Memory — What Survives a Single Long-Lived Chat](./grok-bot-memory.md) — the concrete split between durable memory and transcript, and why memory does not bound context.
+- [Claude Duet vs Grok Bot — One Assistant or a Roster?](./claude-duet-vs-grok-bot.md) — a capable proactive agent with no bot primitive, which is what makes the roster a product choice rather than a requirement.
 
 ## Changelog
 
