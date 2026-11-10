@@ -139,7 +139,7 @@ The server only owns PTYs and bytes: `TerminalManager` retains 5 000 lines / 8 M
 
 ## Distribution
 
-Stable, nightly, and preview channels; stable promotes the latest verified nightly, six desktop artifacts build in parallel off one shared JS bundle ([release.md](https://github.com/pingdotgg/t3code/blob/33806e73555107b8ac8fb18fd15b9dfb87ec6557/docs/operations/release.md)). Desktop is one `electron-builder` run per platform — AppImage + `.deb` on Linux, DMG and NSIS elsewhere — with `electron-updater` channels `latest`/`nightly`; AUR repackages the x86_64 AppImage (`scripts/build-desktop-artifact.ts:2766`, `apps/desktop/src/updates/updateChannels.ts:15`, `packaging/aur/README.md:3-4`). Mobile ships through EAS channels `development | preview | v2-preview | production` with `expo-updates` on load and fingerprint-based runtime versions (`apps/mobile/eas.json:14`, `apps/mobile/app.config.ts:233,242`). `apps/marketing` is an Astro static site and not a fourth shell.
+Stable, nightly, and preview channels; stable promotes the latest verified nightly, six desktop artifacts build in parallel off one shared JS bundle ([release.md](https://github.com/pingdotgg/t3code/blob/33806e73555107b8ac8fb18fd15b9dfb87ec6557/docs/operations/release.md)). Desktop is one `electron-builder` run per platform — AppImage + `.deb` on Linux, DMG and NSIS elsewhere — with `electron-updater` channels `latest`/`nightly`; AUR repackages the x86_64 AppImage (`scripts/build-desktop-artifact.ts:2766`, `apps/desktop/src/updates/updateChannels.ts:15`, `packaging/aur/README.md:3-4`). Mobile ships through EAS channels `development | preview | v2-preview | production` with `expo-updates` on load and fingerprint-based runtime versions (`apps/mobile/eas.json:14`, `apps/mobile/app.config.ts:233,242`). `apps/marketing` is an Astro static site and not a fourth shell. Shipping mechanics — archives, launcher, signing, feeds, and the release graph — are in [T3 Code — How It Ships](./t3-code-distribution.md).
 
 ## Open Questions
 
@@ -151,6 +151,8 @@ Stable, nightly, and preview channels; stable promotes the latest verified night
 
 ## Related
 
+- [T3 Code × pi — How an Orchestrator Drives the pi Coding Agent Over RPC](./t3-code-pi-coding-agent-integration.md) — the ws-method peer that consumes the provider registry: detached `pi --mode rpc`, the injected extension carrying permissions and the MCP bridge, and settle-probe turn control.
+- [T3 Code — How It Ships](./t3-code-distribution.md) — the packaging and release side: CLI archives, the npm launcher, six signed desktop artifacts, updater feeds, and the stable/nightly/preview trains.
 - [T3 Code — Context Handoff When Switching CLI Providers](./t3-code-provider-switch-context-handoff.md) — the same commit, focused on orchestration state: detach/lazy-reopen, native resume vs. `ContextHandoff` summaries.
 - [Effect v4 @effect/rpc — Deep Dive](./effect-v4-rpc.md) — the `Rpc`/`RpcGroup` machinery T3's 185-method socket is built on.
 - [Effect-TS for CLI Projects](./effect-ts-cli.md) — the `effect/unstable/cli` command tree behind `t3 start`/`t3 serve`.
