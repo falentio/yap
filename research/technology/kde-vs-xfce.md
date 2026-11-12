@@ -5,7 +5,7 @@ tags: [linux, desktop-environment, kde-plasma, xfce, wayland, x11, resource-usag
   maintenance, release-cadence, security-process]
 status: complete
 created: 2026-11-06
-updated: 2026-11-06
+updated: 2026-11-12
 sources:
   - https://community.kde.org/Schedules/Plasma_6
   - https://blogs.kde.org/2025/11/26/going-all-in-on-a-wayland-future/
@@ -194,6 +194,7 @@ Both are in every major distribution's repositories, co-installable, and neither
 
 ## Related
 
+- [XFCE Workspace Switcher](./xfce-workspace-switcher.md) — the component behind the "workspaces missing on Wayland" line above: the `pager` panel plugin, its five xfconf settings, and xfwm4's `workspace_count`/`workspace_names`.
 - [Windows-Like Linux Desktops](./windows-like-linux-desktops.md) — the same two desktops graded on shell fidelity to Windows rather than on cost, where Plasma is the maximum-fidelity answer and Xfce the XP-era-looking one.
 - [Debian-Derived Distros With KDE Plasma](./debian-based-kde-distributions.md) — where Plasma comes from on Debian and which branch each derivative pins, if the Plasma side is settled.
 - [Running a Linux Desktop Inside gVisor](./linux-desktop-in-gvisor.md) — the no-GPU, no-display-connector case that pushes this comparison toward Xfce by force.
@@ -203,3 +204,4 @@ Both are in every major distribution's repositories, co-installable, and neither
 
 - 2026-11-06 — created. Researched via TinyFish search and fetch; all measurements are second-hand and cited, with the conflicting runs kept rather than averaged.
 - 2026-11-06 — added the three decision sections (when Plasma, when Xfce, when either) and folded the two "genuinely wins" lists into them so the trade is stated as a bill rather than a score.
+- 2026-11-12 — linked the XFCE Workspace Switcher component file from Related.

@@ -4,7 +4,7 @@ category: technology
 tags: [linux, desktop-environment, kde-plasma, cinnamon, xfce, deepin, budgie, zorin, linuxfx, wubuntu, anduinos, windows, migration, theming]
 status: complete
 created: 2026-11-06
-updated: 2026-11-07
+updated: 2026-11-12
 sources:
   - https://www.howtogeek.com/best-windows-like-linux-desktops-for-a-familiar-look-and-feel/
   - https://www.xda-developers.com/make-linux-look-like-windows-11/
@@ -154,6 +154,7 @@ The one structural point under all of these: **measure how much of the Windows l
 - [Running a Linux Desktop Inside gVisor](./linux-desktop-in-gvisor.md) — the same desktop question where there is no GPU and no display connector: why headless Wayland GNOME over RDP works and Xorg, xrdp and VNC do not.
 - [Computer-Use Stacks for Agents Under gVisor](./computer-use-stack-for-agents-on-gvisor.md) — the control plane over a desktop, per combination.
 - [Browser-Viewable VNC on gVisor](./vnc-server-on-gvisor-with-browser-client.md) — why a remotely served Windows-like desktop has to be X11.
+- [XFCE Workspace Switcher](./xfce-workspace-switcher.md) — the panel widget where a Windows user expects the workspace pager, and the only place Xfce exposes workspace count, names and layout.
 - [KDE Plasma vs Xfce](./kde-vs-xfce.md) — the same two shells graded on cost instead of fidelity: the Wayland split, the contested RAM numbers, and who funds each one.
 - [Cua Driver vs Vercel agent-desktop — two local drivers, and the shell field they leave alone](./cua-driver-vs-vercel-agent-desktop.md) — driver choice is a separate layer from desktop choice; the driver field splits on whether the agent drives your machine or its own.
 - ["Bevel Agent Desktop" — the three name collisions and the shell-class alternatives](./bevel-agent-desktop.md) — no product carries that name; Bevel Desktop is a macOS shell with no agent interface.
@@ -162,3 +163,4 @@ The one structural point under all of these: **measure how much of the Windows l
 
 - 2026-11-07 — cross-linked the Cua Driver vs Vercel agent-desktop head-to-head and the "Bevel agent desktop" disambiguation from Related.
 - 2026-11-06 — created. Every external source went through TinyFish search and fetch_content; XPQ4's own site returned bot_blocked, so its details rest on secondary sources.
+- 2026-11-12 — linked the XFCE Workspace Switcher component file from Related.
