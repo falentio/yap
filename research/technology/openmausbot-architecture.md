@@ -338,6 +338,7 @@ Workspace boundaries are plain pnpm workspaces, no Turbo or Nx. `pnpm-workspace.
 - The decision model's threshold in `decideRoomResponder` is a fixed constant in code. Whether it is tuned per deployment or exposed as a setting was not traced.
 
 ## Related
+- [oRPC Contract-First — SSE/Streaming Procedures in a Contract](./orpc-contract-first-sse-subscription-contract.md) — the same server-to-client SSE shape given a contract-first treatment: what a stream owes the wire (`lastEventId` resume, `done`/`error` frames, abort-driven cleanup).
 - [Grok Bot, OpenMausBot, and OpenBot — Three Answers to the Same Primitive](./grok-bot-openmausbot-openbot-compared.md) — the three-way comparison: shared account computer vs your machine and engine choice vs a per-bot container behind a CEL gateway.
 
 - [OpenMausBot's Bot Computer](./openmausbot-computer-layer.md) — the deep dive on the four backends, the container flag set, and shared screen control.

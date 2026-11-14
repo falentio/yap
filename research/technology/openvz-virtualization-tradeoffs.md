@@ -108,5 +108,6 @@ What KVM changes is not speed. It is who owns the knobs.
 
 ## See also
 
+- [Linux Virtualizers Compared — KVM, Xen, Incus, Kata, gVisor and the Rest](./linux-virtualizers-compared.md) — where OpenVZ sits among the eleven systems and four families, and why the shared-kernel column is the one that matters here.
 - [gVisor vs a Hypervisor — Application Kernel, VMM, and Where the Boundary Sits](./gvisor-vs-hypervisor.md) — the same shared-boundary argument at a different layer, and why a user-space application kernel is a third position.
 - [Turso for Production Use — Reliability Assessment](./turso-production-reliability.md) — the managed-database route when the host's kernel stops being your problem at all.

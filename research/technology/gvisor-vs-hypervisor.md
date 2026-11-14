@@ -275,6 +275,7 @@ without a VM's packaging cost
 ## Related
 
 - [Running a Linux Desktop Inside gVisor](./linux-desktop-in-gvisor.md) — the compatibility gaps in practice: a desktop runs, but only on a CPU-rendering path, with no DRM device.
+- [Linux Virtualizers Compared — KVM, Xen, Incus, Kata, gVisor and the Rest](./linux-virtualizers-compared.md) — this file's four boundaries placed among the eleven systems that make up the field, with the microVM and Wasm positions this one only gestures at.
 - [AI Agent Sandboxes Compared](../product/ai-agent-sandbox-comparison.md) — the same boundaries priced as products: gVisor, container and microVM tiers.
 - [Agent 37's Standard Tier](../product/agent37-standard-tier-tradeoffs.md) — what gVisor's syscall cost does to a shared-host business model.
 - [Open-Source Grok Bot Alternatives](./open-source-grok-bot-alternatives.md) — gVisor, Kata and Firecracker as selectable sandbox backends.
@@ -282,6 +283,8 @@ without a VM's packaging cost
 
 
 ## Changelog
+
+- 2026-11-11 — cross-linked the field-wide comparison.
 
 - 2026-11-01 — cross-linked the desktop-in-gVisor companion file.
 

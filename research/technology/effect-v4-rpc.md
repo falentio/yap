@@ -432,6 +432,7 @@ const client = yield* RpcTest.makeClient(Rpcs).pipe(Effect.provide(Handlers))
 
 ## Related
 
+- [oRPC Contract-First — SSE/Streaming Procedures in a Contract](./orpc-contract-first-sse-subscription-contract.md) — the other streaming-RPC design: a stream is a normal procedure whose `.output` wraps `eventIterator(yield, return?)`, so the contract types the generator and SSE frames (`message`/`done`/`error`) replace a schema-typed stream RPC.
 - [Turso for Production Use — Reliability Assessment](./turso-production-reliability.md) — unrelated
   topic; kept here only as the other `technology` entry.
 - [Drizzle ORM with Effect-TS — Integration Lines](./drizzle-effect-integration.md) — a consumer of
